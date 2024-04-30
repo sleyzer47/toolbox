@@ -18,7 +18,7 @@ class MenuPage(ctk.CTkFrame):
         button0.pack(fill="x", padx=10, pady=5)
 
         # Boutons avec des appels à show_frame
-        button1 = ctk.CTkButton(button_frame, text="Host", command=lambda: self.controller.show_frame("HostPage"))
+        button1 = ctk.CTkButton(button_frame, text="Network", command=lambda: self.controller.show_frame("NetworkPage"))
         button1.pack(fill="x", padx=10, pady=5)
 
         button2 = ctk.CTkButton(button_frame, text="Web", command=lambda: self.controller.show_frame("WebPage"))

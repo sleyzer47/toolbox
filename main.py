@@ -1,12 +1,12 @@
 import customtkinter as ctk
 from pages.start import StartPage
 from pages.menu import MenuPage
-from pages.host import HostPage
 from pages.web import WebPage
+from pages.network import NetworkPage
 from pages.nmap import NmapPage
 from pages.nessus import NessusPage
 from pages.password import PasswordPage
-from pages.ssh import AuthPage
+from pages.ssh import SSHPage
 
 class CustomTkinterApp(ctk.CTk):
     def __init__(self):
@@ -23,12 +23,12 @@ class CustomTkinterApp(ctk.CTk):
         self.frames = {
             "StartPage": StartPage,
             "MenuPage": MenuPage,
-            "HostPage": HostPage,
+            "NetworkPage": NetworkPage,
             "WebPage": WebPage,
             "NmapPage": NmapPage,
             "NessusPage": NessusPage,
             "PasswordPage": PasswordPage,
-            "AuthPage": AuthPage            
+            "AuthPage": SSHPage            
         }
 
         self.current_frame = None

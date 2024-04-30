@@ -8,12 +8,13 @@ import threading
 import time
 
 
-class AuthPage(ctk.CTkFrame):
+class SSHPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
         self.setup_ui()
 
+        self.is_request_pending = False
         self.selected_username_list = None
         self.selected_password_list = None
         self.ssh_port = None
@@ -28,12 +29,12 @@ class AuthPage(ctk.CTkFrame):
 
         buttons = [
             ("Menu", lambda: self.controller.show_frame("MenuPage")),
-            ("Host", lambda: self.controller.show_frame("HostPage")),
+            ("Network", lambda: self.controller.show_frame("NetworkPage")),
             ("Web", lambda: self.controller.show_frame("WebPage")),
             ("Nmap", lambda: self.controller.show_frame("NmapPage")),
-            ("OpenVAS", lambda: self.controller.show_frame("OpenVASPage")),
+            ("Nessus", lambda: self.controller.show_frame("NessusPage")),
             ("Password", lambda: self.controller.show_frame("PasswordPage")),
-            ("Auth", lambda: self.controller.show_frame("AuthPage"))
+            ("SSH", lambda: self.controller.show_frame("SSHPage"))
         ]
 
         for text, command in buttons:
@@ -43,16 +44,14 @@ class AuthPage(ctk.CTkFrame):
         quit_button = ctk.CTkButton(button_frame, text="Quitter", command=self.quit_app, fg_color="#d05e5e")
         quit_button.pack(fill="x", padx=10, pady=5)
 
-        ctk.CTkLabel(self.canvas, text="Auth Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
-        ctk.CTkLabel(self.canvas, text="Welcome in authentication page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="SSH Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="Welcome in SSH page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
         
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)
 
         generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)
-
-        self.is_request_pending = False
 
     def run_scans(self):
         ip = self.entry.get()
