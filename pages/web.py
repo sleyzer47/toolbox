@@ -88,7 +88,7 @@ class WebPage(ctk.CTkFrame):
         if web_ports:
             print("Starting SQL injection tests on the following ports:", ', '.join(map(str, web_ports)))
             for port in web_ports:
-                self.test_sql_injection(ip, port)
+                #self.test_sql_injection(ip, port)
                 self.run_nikto_scan(ip, port)
         else:
             print("Web server not found!")
