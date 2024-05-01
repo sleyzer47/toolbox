@@ -3,15 +3,14 @@ from scapy.all import sr1, IP, TCP, send
 import ipaddress
 import subprocess
 import re
-import threading
 
 class WebPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.setup_ui()
-    
         self.is_request_pending = False
+        
+        self.setup_ui()
 
     def setup_ui(self):
         self.canvas = ctk.CTkCanvas(self)
@@ -86,10 +85,11 @@ class WebPage(ctk.CTkFrame):
                 web_ports.append(port)
 
         if web_ports:
-            print("Starting SQL injection tests on the following ports:", ', '.join(map(str, web_ports)))
+            print("Starting tests on the following ports:", ', '.join(map(str, web_ports)))
             for port in web_ports:
                 #self.test_sql_injection(ip, port)
-                self.run_nikto_scan(ip, port)
+                #self.run_nikto_scan(ip, port)
+                self.run_arachni_scan(ip)
         else:
             print("Web server not found!")
             self.show_error_message("No web server found on this target!", self.canvas)
@@ -125,6 +125,19 @@ class WebPage(ctk.CTkFrame):
             print(f"Nikto scan timed out after 3 minutes on port: {port}")
         except Exception as e:
             print(f"Error running Nikto: {str(e)}")
+
+
+    def run_arachni_scan(self, ip):
+        print("Starting Arachni scan on: " + ip)
+        try:
+            path_to_arachni = "./arachni/bin/arachni"  # Assurez-vous que le chemin est correct
+            command = f"{path_to_arachni} {ip} --output-verbose"
+            result = subprocess.run(command, shell=True, text=True, capture_output=True)
+            print("Arachni scan results:")
+            print(result.stdout)
+        except Exception as e:
+            print(f"Error running Arachni: {str(e)}")
+
 
 
     def show_error_message(self, message, canvas):

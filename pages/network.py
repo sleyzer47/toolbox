@@ -8,53 +8,41 @@ class NetworkPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.is_request_pending = False
+        self.setup_ui()
 
-        # Créer un canevas avec une taille spécifique
-        canvas = ctk.CTkCanvas(self, highlightthickness=0)
-        canvas.pack(side="left", fill="both", expand=True)
-
-        # Créer un cadre à l'intérieur du canevas pour organiser les boutons
-        button_frame = ctk.CTkFrame(canvas)
-        canvas.create_window((0, 0), window=button_frame, anchor="nw")
+    def setup_ui(self):
+        self.canvas = ctk.CTkCanvas(self)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        
+        button_frame = ctk.CTkFrame(self.canvas)
+        self.canvas.create_window((0, 0), window=button_frame, anchor="nw")
         button_frame.pack(fill="y", side="left")
 
-        button0 = ctk.CTkButton(button_frame, text="Menu", command=lambda: self.controller.show_frame("MenuPage"))
-        button0.pack(fill="x", padx=10, pady=5)
+        buttons = [
+            ("Menu", lambda: self.controller.show_frame("MenuPage")),
+            ("Network", lambda: self.controller.show_frame("NetworkPage")),
+            ("Web", lambda: self.controller.show_frame("WebPage")),
+            ("Nmap", lambda: self.controller.show_frame("NmapPage")),
+            ("Nessus", lambda: self.controller.show_frame("NessusPage")),
+            ("Password", lambda: self.controller.show_frame("PasswordPage")),
+            ("SSH", lambda: self.controller.show_frame("SSHPage"))
+        ]
 
-        button1 = ctk.CTkButton(button_frame, text="Host", command=lambda: self.controller.show_frame("HostPage"))
-        button1.pack(fill="x", padx=10, pady=5)
+        for text, command in buttons:
+            btn = ctk.CTkButton(button_frame, text=text, command=command)
+            btn.pack(fill="x", padx=10, pady=5)
 
-        button2 = ctk.CTkButton(button_frame, text="Web", fg_color="#0d68a1")
-        button2.pack(fill="x", padx=10, pady=5)
-
-        button3 = ctk.CTkButton(button_frame, text="Nmap", command=lambda: self.controller.show_frame("NmapPage"))
-        button3.pack(fill="x", padx=10, pady=5)
-
-        button4 = ctk.CTkButton(button_frame, text="OpenVAS", command=lambda: self.controller.show_frame("OpenVASPage"))
-        button4.pack(fill="x", padx=10, pady=5)
-
-        button5 = ctk.CTkButton(button_frame, text="Password", command=lambda: self.controller.show_frame("PasswordPage"))
-        button5.pack(fill="x", padx=10, pady=5)
-
-        button6 = ctk.CTkButton(button_frame, text="Auth", command=lambda: self.controller.show_frame("AuthPage"))
-        button6.pack(fill="x", padx=10, pady=5)
-
-        # Ajouter le bouton "Quitter" à la fin de la liste de boutons
         quit_button = ctk.CTkButton(button_frame, text="Quitter", command=self.quit_app, fg_color="#d05e5e")
         quit_button.pack(fill="x", padx=10, pady=5)
 
-        title = ctk.CTkLabel(canvas, text="Web Page", text_color="Black", font=(None, 20))
-        title.pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="Network Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="Welcome in network page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
 
-        label = ctk.CTkLabel(canvas, text="Welcome in web page!", text_color="Black", font=(None, 14))
-        label.pack(side="top", pady=10, anchor="n")
         
         # Créer une zone de texte
-        self.entry = ctk.CTkEntry(canvas, placeholder_text="Enter the target IP")
+        self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)
-
-
-        self.is_request_pending = False
 
         def run_scans():
             if self.is_request_pending:
@@ -70,13 +58,13 @@ class NetworkPage(ctk.CTkFrame):
                 self.malformed_packet_test(ip)
 
             except ValueError:
-                self.show_error_message("Incorrect/unreachable IP!", canvas)
+                self.show_error_message("Incorrect/unreachable IP!", self.canvas)
                 return
 
             self.is_request_pending = True
             self.after(3000, self.reset_request_state)
 
-        generate_button = ctk.CTkButton(canvas, text="Generate Report", command=run_scans)
+        generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)
 
     def scan_with_nmap(self, ip):

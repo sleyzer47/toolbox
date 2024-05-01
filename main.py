@@ -28,7 +28,7 @@ class CustomTkinterApp(ctk.CTk):
             "NmapPage": NmapPage,
             "NessusPage": NessusPage,
             "PasswordPage": PasswordPage,
-            "AuthPage": SSHPage            
+            "SSHPage": SSHPage            
         }
 
         self.current_frame = None
