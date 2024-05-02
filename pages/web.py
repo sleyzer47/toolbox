@@ -87,9 +87,9 @@ class WebPage(ctk.CTkFrame):
         if web_ports:
             print("Starting tests on the following ports:", ', '.join(map(str, web_ports)))
             for port in web_ports:
-                #self.test_sql_injection(ip, port)
+                self.test_sql_injection(ip, port)
                 #self.run_nikto_scan(ip, port)
-                self.run_arachni_scan(ip)
+                #self.run_arachni_scan(ip)
         else:
             print("Web server not found!")
             self.show_error_message("No web server found on this target!", self.canvas)
@@ -102,7 +102,6 @@ class WebPage(ctk.CTkFrame):
             command = f"python {path_to_sqlmap} -u {url} --batch --level=5 --risk=3 --threads=10 --tamper=space2comment --random-agent -v 0"
             result = subprocess.run(command, shell=True, text=True, capture_output=True)
             
-            # Afficher les résultats dans la console ou les traiter selon vos besoins
             if "injection not detected" in result.stdout:
                 print("No SQL Injection vulnerability found.")
             else:
@@ -117,7 +116,6 @@ class WebPage(ctk.CTkFrame):
         command = ["perl", path_to_nikto, "-h", ip, "-p", str(port)]
         
         try:
-            # Exécution de la commande avec un timeout
             result = subprocess.run(command, text=True, capture_output=True, timeout=300)
             print("Nikto scan results:")
             print(result.stdout)
@@ -130,7 +128,7 @@ class WebPage(ctk.CTkFrame):
     def run_arachni_scan(self, ip):
         print("Starting Arachni scan on: " + ip)
         try:
-            path_to_arachni = "./arachni/bin/arachni"  # Assurez-vous que le chemin est correct
+            path_to_arachni = "./arachni/bin/arachni"
             command = f"{path_to_arachni} {ip} --output-verbose"
             result = subprocess.run(command, shell=True, text=True, capture_output=True)
             print("Arachni scan results:")

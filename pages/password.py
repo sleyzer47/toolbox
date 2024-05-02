@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import string
 import random
+import pyperclip
 
 class PasswordPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -43,8 +44,8 @@ class PasswordPage(ctk.CTkFrame):
         self.include_uppercase = ctk.CTkCheckBox(self.canvas, text="Include Uppercase")
         self.include_uppercase.pack(padx=10, pady=5)
 
-        self.include_digits = ctk.CTkCheckBox(self.canvas, text="Include Numbers")
-        self.include_digits.pack(padx=10, pady=5)
+        self.include_numbers = ctk.CTkCheckBox(self.canvas, text="Include Numbers")
+        self.include_numbers.pack(padx=10, pady=5)
 
         self.include_special = ctk.CTkCheckBox(self.canvas, text="Include Special Characters")
         self.include_special.pack(padx=10, pady=5)
@@ -58,25 +59,43 @@ class PasswordPage(ctk.CTkFrame):
     def generate_password(self):
         if self.is_request_pending:
             return
-        length = int(self.length_entry.get())
+        try:
+            length = int(self.length_entry.get())
+            if length < 4 or length > 100:
+                self.show_error_message("Password length must be between 4 and 100", self.canvas)
+                return
+        except ValueError:
+            self.show_error_message("Enter a number!", self.canvas)
+            return
+
         include_upper = self.include_uppercase.get()
-        include_digits = self.include_digits.get()
+        include_numbers = self.include_numbers.get()
         include_special = self.include_special.get()
 
         characters = string.ascii_lowercase
         if include_upper:
             characters += string.ascii_uppercase
-        if include_digits:
+        if include_numbers:
             characters += string.digits
         if include_special:
             characters += string.punctuation
 
         password = ''.join(random.choice(characters) for i in range(length))
-        self.result_label.configure(text=password)
+        self.result_label.configure(text=password + "\nPassword copied to clipboard!")
         print(password)
+        self.copy_to_clipboard(password)
+
+        self.after(5000, lambda: self.result_label.destroy())
         
         self.is_request_pending = True
         self.after(300, self.reset_request_state)
+
+    def copy_to_clipboard(self, password):
+        try:
+            pyperclip.copy(password)
+            print("Password copied to clipboard!")
+        except Exception as e:
+            print("Failed to copy password to clipboard:", str(e))
 
     def show_error_message(self, message, canvas):
         label_error = ctk.CTkLabel(canvas, text=message, text_color="Red", font=(None, 11))
