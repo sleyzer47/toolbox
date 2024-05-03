@@ -4,3 +4,4 @@ customtkinter==5.2.2
 pillow==10.2.0
 reportlab==4.1.0
 scapy==2.5.0
+pyperclip==1.8.2

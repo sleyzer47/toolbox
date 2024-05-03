@@ -8,6 +8,7 @@ class PasswordPage(ctk.CTkFrame):
         super().__init__(parent)
         self.controller = controller
         self.is_request_pending = False
+        self.current_canvas = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -37,24 +38,54 @@ class PasswordPage(ctk.CTkFrame):
 
         ctk.CTkLabel(self.canvas, text="Password Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
         ctk.CTkLabel(self.canvas, text="Welcome in password page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
-        
-        self.length_entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter password length")
+
+        # Toggle buttons
+        self.generate_password_button = ctk.CTkButton(self.canvas, text="Generate Password", command=self.show_generate_password)
+        self.generate_password_button.pack(pady=5)
+
+        self.test_password_button = ctk.CTkButton(self.canvas, text="Test Password", command=self.show_test_password)
+        self.test_password_button.pack(pady=5)
+
+        # Start with generate password canvas
+        self.show_generate_password()
+
+    def clear_canvas(self):
+        if self.current_canvas:
+            self.current_canvas.destroy()
+        self.current_canvas = ctk.CTkCanvas(self.canvas)
+        self.current_canvas.pack(fill="both", expand=True)
+
+    def show_generate_password(self):
+        self.clear_canvas()
+        self.length_entry = ctk.CTkEntry(self.current_canvas, placeholder_text="Enter password length")
         self.length_entry.pack(padx=200, pady=5)
 
-        self.include_uppercase = ctk.CTkCheckBox(self.canvas, text="Include Uppercase")
+        self.include_uppercase = ctk.CTkCheckBox(self.current_canvas, text="Include Uppercase")
         self.include_uppercase.pack(padx=10, pady=5)
 
-        self.include_numbers = ctk.CTkCheckBox(self.canvas, text="Include Numbers")
+        self.include_numbers = ctk.CTkCheckBox(self.current_canvas, text="Include Numbers")
         self.include_numbers.pack(padx=10, pady=5)
 
-        self.include_special = ctk.CTkCheckBox(self.canvas, text="Include Special Characters")
+        self.include_special = ctk.CTkCheckBox(self.current_canvas, text="Include Special Characters")
         self.include_special.pack(padx=10, pady=5)
 
-        generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.generate_password)
+        generate_button = ctk.CTkButton(self.current_canvas, text="Generate Password", command=self.generate_password)
         generate_button.pack(fill="x", padx=150, pady=5)
 
-        self.result_label = ctk.CTkLabel(self.canvas, text="", font=(None, 12), text_color="Blue")
+        self.result_label = ctk.CTkLabel(self.current_canvas, text="", font=(None, 12), text_color="Blue")
         self.result_label.pack(side="top", pady=10, anchor="n")
+
+    def show_test_password(self):
+        self.clear_canvas()
+        ctk.CTkLabel(self.current_canvas, text="Test Password", font=(None, 16)).pack(pady=10)
+        self.password_entry = ctk.CTkEntry(self.current_canvas, placeholder_text="Enter password to test")
+        self.password_entry.pack(pady=10)
+
+        test_button = ctk.CTkButton(self.current_canvas, text="Test Strength", command=self.test_password)
+        test_button.pack(pady=20)
+
+        self.test_result_label = ctk.CTkLabel(self.current_canvas, text="", font=(None, 12), text_color="Red")
+        self.test_result_label.pack(pady=10)
 
     def generate_password(self):
         if self.is_request_pending:
@@ -62,10 +93,10 @@ class PasswordPage(ctk.CTkFrame):
         try:
             length = int(self.length_entry.get())
             if length < 4 or length > 100:
-                self.show_error_message("Password length must be between 4 and 100", self.canvas)
+                self.show_error_message("Password length must be between 4 and 100", self.current_canvas)
                 return
         except ValueError:
-            self.show_error_message("Enter a number!", self.canvas)
+            self.show_error_message("Enter a number!", self.current_canvas)
             return
 
         include_upper = self.include_uppercase.get()
@@ -82,18 +113,20 @@ class PasswordPage(ctk.CTkFrame):
 
         password = ''.join(random.choice(characters) for i in range(length))
         self.result_label.configure(text=password + "\nPassword copied to clipboard!")
-        print(password)
         self.copy_to_clipboard(password)
 
-        self.after(5000, lambda: self.result_label.destroy())
-        
         self.is_request_pending = True
         self.after(300, self.reset_request_state)
+
+    def test_password(self):
+        if self.is_request_pending:
+            return
+        print("Testing password strength...")
+        # Implement actual password testing logic here
 
     def copy_to_clipboard(self, password):
         try:
             pyperclip.copy(password)
-            print("Password copied to clipboard!")
         except Exception as e:
             print("Failed to copy password to clipboard:", str(e))
 
