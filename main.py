@@ -4,7 +4,7 @@ from pages.menu import MenuPage
 from pages.web import WebPage
 from pages.network import NetworkPage
 from pages.nmap import NmapPage
-from pages.nessus import NessusPage
+from pages.map import MapPage
 from pages.password import PasswordPage
 from pages.ssh import SSHPage
 
@@ -26,7 +26,7 @@ class CustomTkinterApp(ctk.CTk):
             "NetworkPage": NetworkPage,
             "WebPage": WebPage,
             "NmapPage": NmapPage,
-            "NessusPage": NessusPage,
+            "MapPage": MapPage,
             "PasswordPage": PasswordPage,
             "SSHPage": SSHPage            
         }
