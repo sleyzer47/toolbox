@@ -25,7 +25,7 @@ class WebPage(ctk.CTkFrame):
             ("Network", lambda: self.controller.show_frame("NetworkPage")),
             ("Web", lambda: self.controller.show_frame("WebPage")),
             ("Nmap", lambda: self.controller.show_frame("NmapPage")),
-            ("Nessus", lambda: self.controller.show_frame("NessusPage")),
+            ("Map", lambda: self.controller.show_frame("MapPage")),
             ("Password", lambda: self.controller.show_frame("PasswordPage")),
             ("SSH", lambda: self.controller.show_frame("SSHPage"))
         ]

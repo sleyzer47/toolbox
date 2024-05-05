@@ -24,7 +24,7 @@ class NetworkPage(ctk.CTkFrame):
             ("Network", lambda: self.controller.show_frame("NetworkPage")),
             ("Web", lambda: self.controller.show_frame("WebPage")),
             ("Nmap", lambda: self.controller.show_frame("NmapPage")),
-            ("Nessus", lambda: self.controller.show_frame("NessusPage")),
+            ("Map", lambda: self.controller.show_frame("MapPage")),
             ("Password", lambda: self.controller.show_frame("PasswordPage")),
             ("SSH", lambda: self.controller.show_frame("SSHPage"))
         ]
@@ -50,7 +50,7 @@ class NetworkPage(ctk.CTkFrame):
             ip = self.entry.get()
 
             try:
-                ip_ok = ipaddress.ip_address(ip)
+                ipaddress.ip_address(ip)
                 self.ports_and_services = self.scan_with_nmap(ip)
                 results_text = "\n".join(f"Port {port}: {service}" for port, service in self.ports_and_services.items())
                 print(results_text)
