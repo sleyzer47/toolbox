@@ -84,7 +84,7 @@ class PasswordPage(ctk.CTkFrame):
         test_button = ctk.CTkButton(self.current_canvas, text="Test Strength", command=self.test_password)
         test_button.pack(pady=20)
 
-        self.test_result_label = ctk.CTkLabel(self.current_canvas, text="", font=(None, 12), text_color="Red")
+        self.test_result_label = ctk.CTkLabel(self.current_canvas, text="", font=(None, 12))
         self.test_result_label.pack(pady=10)
 
     def generate_password(self):
@@ -118,11 +118,42 @@ class PasswordPage(ctk.CTkFrame):
         self.is_request_pending = True
         self.after(300, self.reset_request_state)
 
+    def update_label_color(self, score):
+        if score == 1:
+            color = "#D81717"  # red
+        elif score == 2:
+            color = "#Ec8b0f"  # orange
+        elif score == 3:
+            color = "#E2bb38"  # yellow
+        elif score == 4:
+            color = "#90d615"  # light green
+        else:  # score == 5
+            color = "#008000"  # dark green
+        self.test_result_label.configure(text_color=color, font=("Helvetica", 12, "bold"))
+
     def test_password(self):
         if self.is_request_pending:
             return
-        print("Testing password strength...")
-        # Implement actual password testing logic here
+        password = self.password_entry.get()
+        score = 5  # Initial score
+
+        if not any(c.isupper() for c in password):
+            score -= 1
+        if not any(c.isdigit() for c in password):
+            score -= 1
+        if not any(c in string.punctuation for c in password):
+            score -= 1
+        if len(password) < 8:
+            score -= 1
+        if not any(c.islower() for c in password):
+            score -= 1
+
+        self.update_label_color(score)  # Update the label color based on the score
+        result_text = f"Password Strength Score: {score}/5"
+        self.test_result_label.configure(text=result_text)
+
+        self.is_request_pending = True
+        self.after(300, self.reset_request_state)
 
     def copy_to_clipboard(self, password):
         try:
