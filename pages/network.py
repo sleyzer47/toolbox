@@ -3,12 +3,15 @@ from scapy.all import sr1, IP, TCP, send
 import ipaddress
 import subprocess
 import re
+import json
+import os
 
 class NetworkPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
         self.is_request_pending = False
+        self.ports_and_services = {}  # Initialisation de l'attribut pour stocker les résultats du scan Nmap
         self.setup_ui()
 
     def setup_ui(self):
@@ -26,7 +29,8 @@ class NetworkPage(ctk.CTkFrame):
             ("Nmap", lambda: self.controller.show_frame("NmapPage")),
             ("Map", lambda: self.controller.show_frame("MapPage")),
             ("Password", lambda: self.controller.show_frame("PasswordPage")),
-            ("SSH", lambda: self.controller.show_frame("SSHPage"))
+            ("SSH", lambda: self.controller.show_frame("SSHPage")),
+            ("PDF", lambda: self.controller.show_frame("PDFPage"))
         ]
 
         for text, command in buttons:
@@ -39,77 +43,88 @@ class NetworkPage(ctk.CTkFrame):
         ctk.CTkLabel(self.canvas, text="Network Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
         ctk.CTkLabel(self.canvas, text="Welcome in network page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
 
-        
-        # Créer une zone de texte
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)
 
-        def run_scans():
-            if self.is_request_pending:
-                return
-            ip = self.entry.get()
-
-            try:
-                ipaddress.ip_address(ip)
-                self.ports_and_services = self.scan_with_nmap(ip)
-                results_text = "\n".join(f"Port {port}: {service}" for port, service in self.ports_and_services.items())
-                print(results_text)
-                self.syn_flood_test(ip)
-                self.malformed_packet_test(ip)
-
-            except ValueError:
-                self.show_error_message("Incorrect/unreachable IP!", self.canvas)
-                return
-
-            self.is_request_pending = True
-            self.after(3000, self.reset_request_state)
-
-        generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=run_scans)
+        generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)
 
-    def scan_with_nmap(self, ip):
-        print("Nmap started:")
+    def run_scans(self):
+        if self.is_request_pending:
+            return
+        ip = self.entry.get()
         try:
-            # Lancement de Nmap avec les options pour récupérer les services
-            command = ["nmap", "-sV", ip]
-            result = subprocess.run(command, capture_output=True, text=True)
-            output = result.stdout
+            ipaddress.ip_address(ip)
+            self.scan_with_nmap(ip)  # Stocke les ports dans self.ports_and_services
+            self.syn_flood_test(ip)
+            self.malformed_packet_test(ip)
+        except ValueError:
+            self.show_error_message("Incorrect/unreachable IP!", self.canvas)
+            return
+        self.is_request_pending = True
+        self.after(3000, self.reset_request_state)
 
-            # Parsing du résultat pour construire le dictionnaire
-            self.ports_and_services = {}
-            lines = output.split("\n")
-            for line in lines:
-                if "/tcp" in line and "open" in line:
-                    match = re.search(r"(\d+)/tcp\s+open\s+([\w\s]+)", line)
-                    if match:
-                        port = int(match.group(1))
-                        service = match.group(2).strip()
-                        self.ports_and_services[port] = service
-            return self.ports_and_services
-        except Exception as e:
-            print(f"Failed to run Nmap: {e}")
-            return {}
+    def scan_with_nmap(self, ip):
+        command = ["nmap", "-sV", ip]
+        result = subprocess.run(command, capture_output=True, text=True)
+        lines = result.stdout.split("\n")
+        for line in lines:
+            if "/tcp" in line and "open" in line:
+                match = re.search(r"(\d+)/tcp\s+open\s+([\w\s]+)", line)
+                if match:
+                    port = int(match.group(1))
+                    service = match.group(2).strip()
+                    self.ports_and_services[port] = service
 
     def syn_flood_test(self, ip):
-        print("Starting SYN flood test...")
-        for port in self.ports_and_services.keys(): # Ports à tester
-            for _ in range(0, 100): # Nombre de paquets SYN à envoyer
-                send(IP(dst=ip)/TCP(dport=port, flags="S"), verbose=0)
-        print("SYN flood test completed.")
+        syn_flood_results = [port for port in self.ports_and_services.keys()]
+        self.update_json(ip, syn_flood_results=syn_flood_results)
 
     def malformed_packet_test(self, ip):
-        print("Running malformed packet tests...")
-        flags_to_test = ['FPU', 'U', 'R', 'P']  # Flags malformés
+        malformed_packet_results = {}
+        flags_to_test = ['FPU', 'U', 'R', 'P']
         for port in self.ports_and_services.keys():
+            results = {}
             for flag in flags_to_test:
-                packet = IP(dst=ip) / TCP(dport=port, flags=flag)  # Unusual flag
+                packet = IP(dst=ip)/TCP(dport=port, flags=flag)
                 response = sr1(packet, timeout=1, verbose=0)
-                if response:
-                    print(f"Port {port} Flags {flag}: Response: {response.summary()}")
-                else:
-                    print(f"Port {port} Flags {flag}: No response")
-        print("Malformed packet test finished")
-        
+                response_status = "Response" if response else "No response"
+                results[flag] = response_status
+            malformed_packet_results[port] = results
+        self.update_json(ip, malformed_packet_results=malformed_packet_results)
+
+    def update_json(self, ip, syn_flood_results=None, malformed_packet_results=None):
+        json_path = os.path.join(os.getcwd(), 'result.json')
+        if os.path.exists(json_path):
+            with open(json_path, 'r+') as file:
+                data = json.load(file)
+                if not data.get(ip):
+                    data[ip] = {}
+
+                if syn_flood_results:
+                    data[ip]["syn_flood_results"] = {f"Port: {port}": "Test completed" for port in syn_flood_results}
+                if malformed_packet_results:
+                    data[ip]["malformed_packet_results"] = {
+                        f"Port: {port}": {f"Flag: {flag}": response for flag, response in results.items()}
+                        for port, results in malformed_packet_results.items()
+                    }
+
+                file.seek(0)
+                json.dump(data, file, indent=4)
+                file.truncate()
+        else:
+            initial_data = {}
+            if syn_flood_results:
+                initial_data["syn_flood_results"] = {f"Port: {port}": "Test completed" for port in syn_flood_results}
+            if malformed_packet_results:
+                initial_data["malformed_packet_results"] = {
+                    f"Port: {port}": {f"Flag: {flag}": response for flag, response in results.items()}
+                    for port, results in malformed_packet_results.items()
+                }
+            with open(json_path, 'w') as file:
+                json.dump({ip: initial_data}, file, indent=4)
+
+
     def show_error_message(self, message, canvas):
         label_error = ctk.CTkLabel(canvas, text=message, text_color="Red", font=(None, 11))
         label_error.pack(side="top", pady=10, anchor="n")

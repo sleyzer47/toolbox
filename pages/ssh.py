@@ -34,7 +34,8 @@ class SSHPage(ctk.CTkFrame):
             ("Nmap", lambda: self.controller.show_frame("NmapPage")),
             ("Map", lambda: self.controller.show_frame("MapPage")),
             ("Password", lambda: self.controller.show_frame("PasswordPage")),
-            ("SSH", lambda: self.controller.show_frame("SSHPage"))
+            ("SSH", lambda: self.controller.show_frame("SSHPage")),
+            ("PDF", lambda: self.controller.show_frame("PDFPage"))
         ]
 
         for text, command in buttons:

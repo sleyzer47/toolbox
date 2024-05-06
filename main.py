@@ -7,6 +7,7 @@ from pages.nmap import NmapPage
 from pages.map import MapPage
 from pages.password import PasswordPage
 from pages.ssh import SSHPage
+from pages.pdf import PDFPage
 
 class CustomTkinterApp(ctk.CTk):
     def __init__(self):
@@ -28,7 +29,8 @@ class CustomTkinterApp(ctk.CTk):
             "NmapPage": NmapPage,
             "MapPage": MapPage,
             "PasswordPage": PasswordPage,
-            "SSHPage": SSHPage            
+            "SSHPage": SSHPage,
+            "PDFPage": PDFPage         
         }
 
         self.current_frame = None
