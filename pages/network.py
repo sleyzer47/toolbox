@@ -11,7 +11,7 @@ class NetworkPage(ctk.CTkFrame):
         super().__init__(parent)
         self.controller = controller
         self.is_request_pending = False
-        self.ports_and_services = {}  # Initialisation de l'attribut pour stocker les résultats du scan Nmap
+        self.ports_and_services = {}
         self.setup_ui()
 
     def setup_ui(self):
@@ -55,7 +55,7 @@ class NetworkPage(ctk.CTkFrame):
         ip = self.entry.get()
         try:
             ipaddress.ip_address(ip)
-            self.scan_with_nmap(ip)  # Stocke les ports dans self.ports_and_services
+            self.scan_with_nmap(ip)
             self.syn_flood_test(ip)
             self.malformed_packet_test(ip)
         except ValueError:
@@ -115,9 +115,9 @@ class NetworkPage(ctk.CTkFrame):
         else:
             initial_data = {}
             if syn_flood_results:
-                initial_data["syn_flood_results"] = {f"Port: {port}": "Test completed" for port in syn_flood_results}
+                initial_data["syn_flood"] = {f"Port: {port}": "Test completed" for port in syn_flood_results}
             if malformed_packet_results:
-                initial_data["malformed_packet_results"] = {
+                initial_data["malformed_packet"] = {
                     f"Port: {port}": {f"Flag: {flag}": response for flag, response in results.items()}
                     for port, results in malformed_packet_results.items()
                 }

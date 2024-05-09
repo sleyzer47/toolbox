@@ -14,10 +14,10 @@ class StartPage(ctk.CTkFrame):
         logo_label = ctk.CTkLabel(self.canvas, image=logo, text="")
         logo_label.pack(side=ctk.TOP, pady=(20, 20))
 
-        label = ctk.CTkLabel(self.canvas, text="Start Page", text_color="white")
+        label = ctk.CTkLabel(self.canvas, text="Welcome in the Toolbox!", text_color="white")
         label.pack(pady=10, padx=10)
 
-        menu_button = ctk.CTkButton(self.canvas, text="Go to Menu", command=self.go_to_menu)
+        menu_button = ctk.CTkButton(self.canvas, text="Start", command=self.go_to_menu)
         menu_button.pack(pady=5)
 
         quit_button = ctk.CTkButton(self.canvas, text="Quit", command=self.quit_app)

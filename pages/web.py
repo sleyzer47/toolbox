@@ -3,6 +3,9 @@ from scapy.all import sr1, IP, TCP, send
 import ipaddress
 import subprocess
 import re
+import json
+import os
+import time
 
 class WebPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -30,7 +33,6 @@ class WebPage(ctk.CTkFrame):
             ("SSH", lambda: self.controller.show_frame("SSHPage")),
             ("PDF", lambda: self.controller.show_frame("PDFPage"))
         ]
-
         for text, command in buttons:
             btn = ctk.CTkButton(button_frame, text=text, command=command)
             btn.pack(fill="x", padx=10, pady=5)
@@ -64,7 +66,7 @@ class WebPage(ctk.CTkFrame):
         self.after(3000, self.reset_request_state)
 
     def scan_with_nmap(self, ip):
-        command = ["nmap", "-sV", ip]
+        command = ["nmap", ip]
         result = subprocess.run(command, capture_output=True, text=True)
         output = result.stdout
         
@@ -78,66 +80,96 @@ class WebPage(ctk.CTkFrame):
         return ports_services
         
     def handle_services(self, ip):
-        web_ports = []
+        web_ports = {}
         http_services = {'http', 'apache', 'nginx', 'http-alt', 'http-proxy', 'https', 'apache2', 'apache-ssl'}
-
         for port, service in self.ports_and_services.items():
             if any(http_service in service.lower() for http_service in http_services):
-                web_ports.append(port)
-
+                web_ports[port] = service
         if web_ports:
-            print("Starting tests on the following ports:", ', '.join(map(str, web_ports)))
-            for port in web_ports:
-                self.test_sql_injection(ip, port)
-                #self.run_nikto_scan(ip, port)
-                #self.run_arachni_scan(ip)
+            for port, service in web_ports.items():
+                sqlmap_output = self.test_sql_injection(ip, port)
+                nikto_output = self.run_nikto_scan(ip, port)
+                self.collect_and_update_results(ip, port, service, sqlmap_output, nikto_output)
         else:
-            print("Web server not found!")
+            print("No web server found!")
             self.show_error_message("No web server found on this target!", self.canvas)
-        
+
+
+    def parse_nikto_output(self, output):
+        # Filtrer uniquement les lignes contenant des références CVE et retirer les '+'
+        lines = output.split('\n')
+        cve_patterns = re.compile(r'CVE-\d{4}-\d{4,7}')
+        cve_lines = [cve_patterns.search(line).group(0) for line in lines if 'CVE' in line and cve_patterns.search(line)]
+        return cve_lines
+    
+    def parse_sqlmap_output(self, output):
+        # Utilisation d'une expression régulière pour extraire précisément le contenu après "[CRITICAL]"
+        # Cette méthode est plus robuste si le format change légèrement ou si des données supplémentaires sont incluses.
+        critical_lines = []
+        for line in output.split('\n'):
+            if "[CRITICAL]" in line:
+                # Extraction du texte après "[CRITICAL] "
+                part = line.split("[CRITICAL] ", 1)[-1]
+                if part:  # Assurez-vous que la partie après [CRITICAL] n'est pas vide
+                    critical_lines.append(part)
+
+        return ' '.join(critical_lines)  # Retourne toutes les lignes critiques concaténées en une seule chaîne
+
+
     def test_sql_injection(self, ip, port):
+        print("Starting sqlmap on port: " + str(port))
+        path_to_sqlmap = "./sqlmap-dev/sqlmap.py"
+        url = f"http://{ip}:{port}"
+        command = f"python {path_to_sqlmap} -u {url} --batch --level=5 --risk=3 --threads=10 --tamper=space2comment --random-agent -v 0"
+        start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         try:
-            print("Starting sqlmap on port: " + str(port))
-            path_to_sqlmap = "./sqlmap-dev/sqlmap.py"
-            url = f"http://{ip}:{port}"
-            command = f"python {path_to_sqlmap} -u {url} --batch --level=5 --risk=3 --threads=10 --tamper=space2comment --random-agent -v 0"
             result = subprocess.run(command, shell=True, text=True, capture_output=True)
-            
-            if "injection not detected" in result.stdout:
-                print("No SQL Injection vulnerability found.")
-            else:
-                print("SQL Injection vulnerability detected:")
-                print(result.stdout)
+            end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            detected = "injection not detected" not in result.stdout
+            output = self.parse_sqlmap_output(result.stdout)
+            return {"detected": detected, "start_time": start_time, "end_time": end_time, "output": output}
         except Exception as e:
             print(f"Error running sqlmap: {str(e)}")
-    
+            return {"detected": False, "start_time": start_time, "end_time": end_time, "output": str(e)}
+
     def run_nikto_scan(self, ip, port):
         print("Starting nikto on port: " + str(port))
         path_to_nikto = "./nikto/program/nikto.pl"
         command = ["perl", path_to_nikto, "-h", ip, "-p", str(port)]
-        
+        start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         try:
             result = subprocess.run(command, text=True, capture_output=True, timeout=300)
-            print("Nikto scan results:")
-            print(result.stdout)
+            end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            output = self.parse_nikto_output(result.stdout)
+            return {"start_time": start_time, "end_time": end_time, "CVE": output}
         except subprocess.TimeoutExpired:
-            print(f"Nikto scan timed out after 3 minutes on port: {port}")
+            return {"start_time": start_time, "end_time": end_time, "output": ["Nikto scan timed out after 3 minutes on port: " + str(port)]}
         except Exception as e:
-            print(f"Error running Nikto: {str(e)}")
+            return {"start_time": start_time, "end_time": end_time, "output": [str(e)]}
 
+    def update_json(self, ip, port_details):
+        json_path = os.path.join(os.getcwd(), 'result.json')
+        data = {}
+        if os.path.exists(json_path):
+            with open(json_path, 'r') as file:
+                data = json.load(file)
 
-    def run_arachni_scan(self, ip):
-        print("Starting Arachni scan on: " + ip)
-        try:
-            path_to_arachni = "./arachni/bin/arachni"
-            command = f"{path_to_arachni} {ip} --output-verbose"
-            result = subprocess.run(command, shell=True, text=True, capture_output=True)
-            print("Arachni scan results:")
-            print(result.stdout)
-        except Exception as e:
-            print(f"Error running Arachni: {str(e)}")
+        if ip not in data:
+            data[ip] = {}  # Assurez-vous que cette clé existe
+        data[ip].setdefault("web_scans", [])  # Assurez-vous que la clé "web_scans" existe
+        data[ip]["web_scans"].append(port_details)  # Maintenant vous pouvez ajouter en toute sécurité
 
+        with open(json_path, 'w') as file:
+            json.dump(data, file, indent=4)
 
+    def collect_and_update_results(self, ip, port, service, sqlmap_output, nikto_output):
+        port_details = {
+            "port": port,
+            "service": service,
+            "sqlmap_results": sqlmap_output,
+            "nikto_results": nikto_output
+        }
+        self.update_json(ip, port_details)
 
     def show_error_message(self, message, canvas):
         label_error = ctk.CTkLabel(canvas, text=message, text_color="Red", font=(None, 11))

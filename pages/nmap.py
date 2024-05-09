@@ -53,9 +53,9 @@ class NmapPage(ctk.CTkFrame):
         ip = self.entry.get()
 
         try:
-            ipaddress.ip_address(ip)  # Valide que l'entrée est bien une adresse IP
+            ipaddress.ip_address(ip)
             report = self.run_nmap_scan(ip)
-            self.update_json(ip, report)  # Passez ici l'IP avec le rapport
+            self.update_json(ip, report)
             print(json.dumps(report, indent=4))
         except ValueError:
             self.show_error_message("Incorrect/unreachable IP!", self.canvas)
@@ -103,11 +103,9 @@ class NmapPage(ctk.CTkFrame):
             if os.path.exists(json_path):
                 with open(json_path, 'r') as file:
                     data = json.load(file)
-                # Vérifie si l'IP est déjà présente, sinon crée une nouvelle entrée
                 if ip not in data:
                     data[ip] = {'nmap': []}
-                # Ajoute ou remplace les données de scan sous la clé 'nmap' pour l'IP donnée
-                data[ip]['nmap'] = new_data  # Remplace ou ajoute les résultats de Nmap
+                data[ip]['nmap'] = new_data
             else:
                 data = {ip: {'nmap': new_data}}
             with open(json_path, 'w') as file:

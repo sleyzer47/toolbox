@@ -61,7 +61,7 @@ class SSHPage(ctk.CTkFrame):
     def run_scans(self):
         ip = self.entry.get()
         try:
-            ipaddress.ip_address(ip)  # Validate IP
+            ipaddress.ip_address(ip)
             self.ports_and_services = self.scan_with_nmap(ip)
             self.handle_services()
         except ValueError:
@@ -162,9 +162,9 @@ class SSHPage(ctk.CTkFrame):
         semaphore = threading.Semaphore(5)
 
         def try_login(username, password):
-            if success_flag.is_set():  # Check right at the beginning
+            if success_flag.is_set():
                 return
-            with semaphore:  # Acquire semaphore to limit concurrent threads
+            with semaphore:
                 local_client = paramiko.SSHClient()
                 local_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 try:
@@ -178,12 +178,11 @@ class SSHPage(ctk.CTkFrame):
                     print(f"SSH Error on port {port}: {e}")
                 finally:
                     local_client.close()
-        # Limiter le nombre de connexions simultanées
         
         threads = []
         for username in usernames:
             for password in passwords:
-                if success_flag.is_set():  # Arrête de lancer de nouveaux threads si une connexion a réussi
+                if success_flag.is_set():
                     break
                 thread = threading.Thread(target=lambda u=username, p=password: try_login(u, p))
                 threads.append(thread)

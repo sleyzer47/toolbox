@@ -49,8 +49,7 @@ class MapPage(ctk.CTkFrame):
         self.network_range = self.entry.get()
         self.network_scan(self.network_range)
 
-    def network_scan(self, network_range):
-        # Scan pour identifier tous les hôtes actifs et récupérer les informations basiques
+    def network_scan(self):
         command = f"nmap -sn {self.network_range} --system-dns"
         result = subprocess.run(command, capture_output=True, text=True, shell=True)
         devices = self.parse_basic_info(result.stdout)
@@ -67,10 +66,9 @@ class MapPage(ctk.CTkFrame):
         for line in lines:
             if 'Nmap scan report for' in line:
                 parts = line.split()
-                current_ip = parts[-1].strip('()')  # Supprimer les parenthèses si elles existent
-                # Vérifier si un nom de domaine existe avant l'IP
+                current_ip = parts[-1].strip('()')
                 hostname = parts[4] if '(' in parts[-1] and len(parts) > 5 else 'No hostname'
-                # Si pas de parenthèses et la taille des parties est correcte, le nom de domaine est utilisé comme IP
+                
                 if '(' not in parts[-1] and len(parts) == 5:
                     hostname = parts[-1]
 

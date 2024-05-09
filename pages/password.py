@@ -40,14 +40,12 @@ class PasswordPage(ctk.CTkFrame):
         ctk.CTkLabel(self.canvas, text="Password Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
         ctk.CTkLabel(self.canvas, text="Welcome in password page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
 
-        # Toggle buttons
         self.generate_password_button = ctk.CTkButton(self.canvas, text="Generate Password", command=self.show_generate_password)
         self.generate_password_button.pack(pady=5)
 
         self.test_password_button = ctk.CTkButton(self.canvas, text="Test Password", command=self.show_test_password)
         self.test_password_button.pack(pady=5)
 
-        # Start with generate password canvas
         self.show_generate_password()
 
     def clear_canvas(self):
@@ -128,7 +126,7 @@ class PasswordPage(ctk.CTkFrame):
             color = "#E2bb38"  # yellow
         elif score == 4:
             color = "#90d615"  # light green
-        else:  # score == 5
+        else:
             color = "#008000"  # dark green
         self.test_result_label.configure(text_color=color, font=("Helvetica", 12, "bold"))
 
@@ -136,7 +134,7 @@ class PasswordPage(ctk.CTkFrame):
         if self.is_request_pending:
             return
         password = self.password_entry.get()
-        score = 5  # Initial score
+        score = 5
 
         if not any(c.isupper() for c in password):
             score -= 1
@@ -149,7 +147,7 @@ class PasswordPage(ctk.CTkFrame):
         if not any(c.islower() for c in password):
             score -= 1
 
-        self.update_label_color(score)  # Update the label color based on the score
+        self.update_label_color(score)
         result_text = f"Password Strength Score: {score}/5"
         self.test_result_label.configure(text=result_text)
 

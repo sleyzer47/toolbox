@@ -38,10 +38,8 @@ class CustomTkinterApp(ctk.CTk):
 
     def show_frame(self, page_name):
         if page_name in self.frames:
-            # Détruire le cadre actuel s'il existe
             if self.current_frame:
                 self.current_frame.destroy()
-            # Créer et afficher le nouveau cadre
             FrameClass = self.frames[page_name]
             self.current_frame = FrameClass(parent=self.container, controller=self)
             self.current_frame.pack(fill="both", expand=True)
