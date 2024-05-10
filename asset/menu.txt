@@ -1,0 +1,18 @@
+Welcome to Pentest Toolbox!
+
+Pentest Toolbox is an integrated suite of tools designed to facilitate and speed up penetration testing for cybersecurity professionals. 
+This application combines various features that cover multiple aspects of security audits, enabling users to scan, analyze, and assess the security of networks and computer systems.
+
+Objectives of Pentest Toolbox:
+Automate repetitive tasks: Automate network scans, vulnerability tests, and more, thus freeing up time for more complex analyses.
+Centralize security tools: Access a multitude of security features from a single interface, simplifying the penetration testing process.
+Detailed and actionable reports: Generate detailed reports to document findings and facilitate decision-making based on concrete data.
+
+Features:
+Network scanning with Nmap: Discover active devices on your network and their open ports.
+Web vulnerability tests with Nikto and SQLmap: Identify security flaws in web applications.
+Secure password generation: Create strong passwords to secure your access.
+SSH brute force testing: Test the resilience of your SSH servers against brute force attacks.
+Network visualization: Graphically visualize the structure of your network.
+PDF report creation: Compile your findings into formatted reports for clear documentation.
+Use Pentest Toolbox to enhance your efficiency in penetration testing, reducing the time needed to gather information and increasing the accuracy of your security analyses.

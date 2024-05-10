@@ -96,25 +96,20 @@ class WebPage(ctk.CTkFrame):
 
 
     def parse_nikto_output(self, output):
-        # Filtrer uniquement les lignes contenant des références CVE et retirer les '+'
         lines = output.split('\n')
         cve_patterns = re.compile(r'CVE-\d{4}-\d{4,7}')
         cve_lines = [cve_patterns.search(line).group(0) for line in lines if 'CVE' in line and cve_patterns.search(line)]
         return cve_lines
     
     def parse_sqlmap_output(self, output):
-        # Utilisation d'une expression régulière pour extraire précisément le contenu après "[CRITICAL]"
-        # Cette méthode est plus robuste si le format change légèrement ou si des données supplémentaires sont incluses.
         critical_lines = []
         for line in output.split('\n'):
             if "[CRITICAL]" in line:
-                # Extraction du texte après "[CRITICAL] "
                 part = line.split("[CRITICAL] ", 1)[-1]
-                if part:  # Assurez-vous que la partie après [CRITICAL] n'est pas vide
+                if part:
                     critical_lines.append(part)
 
-        return ' '.join(critical_lines)  # Retourne toutes les lignes critiques concaténées en une seule chaîne
-
+        return ' '.join(critical_lines)
 
     def test_sql_injection(self, ip, port):
         print("Starting sqlmap on port: " + str(port))
@@ -155,9 +150,9 @@ class WebPage(ctk.CTkFrame):
                 data = json.load(file)
 
         if ip not in data:
-            data[ip] = {}  # Assurez-vous que cette clé existe
-        data[ip].setdefault("web_scans", [])  # Assurez-vous que la clé "web_scans" existe
-        data[ip]["web_scans"].append(port_details)  # Maintenant vous pouvez ajouter en toute sécurité
+            data[ip] = {}
+        data[ip].setdefault("web_scans", [])
+        data[ip]["web_scans"].append(port_details)
 
         with open(json_path, 'w') as file:
             json.dump(data, file, indent=4)

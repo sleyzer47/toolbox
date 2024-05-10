@@ -77,7 +77,7 @@ class PDFPage(ctk.CTkFrame):
             y_position = height - margin - 30
 
             for section_name, entries in sections.items():
-                if y_position < 100:  # Ensure there is space to start new section
+                if y_position < 100:
                     c.showPage()
                     y_position = height - margin
 
@@ -109,7 +109,7 @@ class PDFPage(ctk.CTkFrame):
                                         y_position = height - margin
                                     c.drawString(margin + 10, y_position, line)
                                     y_position -= line_height
-                            y_position -= 10  # Extra space between entries
+                            y_position -= 10
                         else:
                             wrapped_text = self.wrap_text(str(entry), max_line_length)
                             for line in wrapped_text:
@@ -120,15 +120,14 @@ class PDFPage(ctk.CTkFrame):
                                 y_position -= line_height
                             y_position -= 10
 
-                y_position -= 10  # Extra space before a new section
+                y_position -= 10
 
-            c.showPage()  # Start a new page after each IP section
+            c.showPage()
 
         c.save()
         print("PDF generated successfully!")
-            # Clear the JSON file
         with open(json_path, 'w') as file:
-            json.dump({}, file)  # Reset the file to empty or initial structure
+            json.dump({}, file)
 
     def show_message(self, message, canvas):
         label = ctk.CTkLabel(canvas, text=message, text_color="Green", font=(None, 11))

@@ -47,7 +47,7 @@ class MapPage(ctk.CTkFrame):
 
     def run_scans(self):
         self.network_range = self.entry.get()
-        self.network_scan(self.network_range)
+        self.network_scan()
 
     def network_scan(self):
         command = f"nmap -sn {self.network_range} --system-dns"
