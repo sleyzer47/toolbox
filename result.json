@@ -202,6 +202,18 @@
                 "CVE": []
             },
             {
+                "service": "ajp13",
+                "port": "8009",
+                "version": "Apache Jserv (Protocol v1.3)",
+                "CVE": []
+            },
+            {
+                "service": "http",
+                "port": "8180",
+                "version": "Apache Tomcat/Coyote JSP engine 1.1",
+                "CVE": []
+            },
+            {
                 "service": "drb",
                 "port": "8787",
                 "version": "Ruby DRb RMI (Ruby 1.8; path /usr/lib/ruby/1.8/drb)",
@@ -214,13 +226,13 @@
                 "service": "http",
                 "sqlmap_results": {
                     "detected": true,
-                    "start_time": "2024-05-10 00:26:20",
-                    "end_time": "2024-05-10 00:30:30",
+                    "start_time": "2024-05-13 22:03:56",
+                    "end_time": "2024-05-13 22:07:59",
                     "output": "all tested parameters do not appear to be injectable"
                 },
                 "nikto_results": {
-                    "start_time": "2024-05-10 00:30:30",
-                    "end_time": "2024-05-10 00:30:47",
+                    "start_time": "2024-05-13 22:07:59",
+                    "end_time": "2024-05-13 22:08:15",
                     "CVE": [
                         "CVE-1999-0678",
                         "CVE-2003-1418"
