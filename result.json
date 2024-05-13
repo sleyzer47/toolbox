@@ -227,7 +227,13 @@
                     ]
                 }
             }
-        ]
+        ],
+        "ssh_brute_force": {
+            "username_list": "top-usernames-shortlist.txt",
+            "password_list": "200_most_used_passwords.txt",
+            "port": 22,
+            "result": "SSH connection successful with user/user"
+        }
     },
     "192.168.1.1": {
         "syn_flood_results": {

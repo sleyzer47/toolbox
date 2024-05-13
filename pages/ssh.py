@@ -22,6 +22,8 @@ class SSHPage(ctk.CTkFrame):
         self.selected_username_list = None
         self.selected_password_list = None
         self.ssh_port = None
+        self.success_flag = threading.Event()
+        self.threads = []
 
     def setup_ui(self):
         self.canvas = ctk.CTkCanvas(self)
@@ -108,11 +110,14 @@ class SSHPage(ctk.CTkFrame):
 
     def initiate_connection(self):
         if self.selected_username_list and self.selected_password_list and self.ssh_port:
+            if self.is_request_pending:
+                print("request blocked in initiate connection")
+                return
+            self.is_request_pending = True
             print("Initiating SSH connection...")
-            self.test_ssh_connection(self.entry.get(), self.ssh_port)
+            threading.Thread(target=self.test_ssh_connection, args=(self.entry.get(), self.ssh_port)).start()
         else:
             self.show_error_message("Please ensure both lists are selected and SSH service is found.", self.canvas)
-
 
     def select_list(self, list_type):
         folder = f"wordlist/{list_type}/"
@@ -157,49 +162,56 @@ class SSHPage(ctk.CTkFrame):
         with open(password_path, 'r') as file:
             passwords = file.read().splitlines()
 
-        success_flag = threading.Event()
-        self.successful_credentials = None
+        threads = []
         semaphore = threading.Semaphore(5)
 
-        def try_login(username, password):
-            if success_flag.is_set():
-                return
-            with semaphore:
-                local_client = paramiko.SSHClient()
-                local_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                try:
-                    local_client.connect(ip, port=port, username=username, password=password, timeout=10)
-                    print(f"SSH connection successful on port {port} with {username}/{password}")
-                    self.successful_credentials = f"{username}/{password}"
-                    success_flag.set()
-                except paramiko.AuthenticationException:
-                    print(f"Failed to connect via SSH on port {port} with {username}/{password}")
-                except paramiko.SSHException as e:
-                    print(f"SSH Error on port {port}: {e}")
-                finally:
-                    local_client.close()
-        
-        threads = []
         for username in usernames:
             for password in passwords:
-                if success_flag.is_set():
+                if self.success_flag.is_set():
                     break
-                thread = threading.Thread(target=lambda u=username, p=password: try_login(u, p))
+                thread = threading.Thread(target=self.try_login, args=(ip, port, username, password, semaphore))
                 threads.append(thread)
                 thread.start()
-                time.sleep(1)
 
         for thread in threads:
             thread.join()
 
-        if success_flag.is_set():
+
+        if self.success_flag.is_set():
             result_details = f"SSH connection successful with {self.successful_credentials}"
             print("Successful authentication detected, stopping all other attempts.")
         else:
             result_details = "No successful SSH connection found."
             print(result_details)
-
         self.update_json(ip, result_details)
+
+        self.is_request_pending = False
+        self.success_flag.clear()
+
+    def try_login(self, ip, port, username, password, semaphore):
+        if self.success_flag.is_set():
+            return
+
+        with semaphore:
+            if self.success_flag.is_set():
+                return
+
+            local_client = paramiko.SSHClient()
+            local_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            try:
+                local_client.connect(ip, port=port, username=username, password=password, timeout=10)
+                print(f"SSH connection successful on port {port} with {username}/{password}")
+                self.success_flag.set()
+                self.successful_credentials = f"{username}/{password}"
+                return
+            except paramiko.AuthenticationException:
+                print(f"Failed to connect via SSH on port {port} with {username}/{password}")
+            except paramiko.SSHException as e:
+                print(f"SSH Error on port {port}: {e}")
+            finally:
+                local_client.close()
+
+
 
     def update_json(self, ip, result_details):
         json_path = os.path.join(os.getcwd(), 'result.json')
