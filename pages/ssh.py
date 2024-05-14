@@ -26,7 +26,7 @@ class SSHPage(ctk.CTkFrame):
         self.threads = []
 
     def setup_ui(self):
-        self.canvas = ctk.CTkCanvas(self)
+        self.canvas = ctk.CTkCanvas(self, highlightthickness=0)
         self.canvas.pack(side="left", fill="both", expand=True)
         
         button_frame = ctk.CTkFrame(self.canvas)
@@ -127,6 +127,10 @@ class SSHPage(ctk.CTkFrame):
         popup = ctk.CTkToplevel(self)
         popup.geometry("400x300")
         popup.title(title)
+
+        # Make the popup stay on top
+        popup.transient(self)
+        popup.grab_set()
         
         frame = ctk.CTkFrame(popup)
         frame.pack(pady=20, padx=20, expand=True)

@@ -13,7 +13,7 @@ class NmapPage(ctk.CTkFrame):
         self.setup_ui()
 
     def setup_ui(self):
-        self.canvas = ctk.CTkCanvas(self)
+        self.canvas = ctk.CTkCanvas(self, highlightthickness=0)
         self.canvas.pack(side="left", fill="both", expand=True)
         
         button_frame = ctk.CTkFrame(self.canvas)
