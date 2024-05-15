@@ -107,9 +107,10 @@ All the gathered data is compiled into a professional PDF report, complete with 
 
 **Nmap Scan**:
 
-    - **Access the Nmap Page**: From the main menu, navigate to the "Nmap" page.
-    - **Enter Target Information**: Input the target IP address or range that you want to scan.
-    - **Run the Scan**: Start the Nmap scan. The results will be displayed and saved for inclusion in the PDF report.
+- **Access the Nmap Page**: From the main menu, navigate to the "Nmap" page.
+- **Enter Target Information**: Input the target IP address or range that you want to scan.
+- **Run the Scan**: Start the Nmap scan. The results will be displayed and saved for inclusion in the PDF report.
+
 
 **Web Scan**:
 
@@ -120,6 +121,7 @@ All the gathered data is compiled into a professional PDF report, complete with 
     - **Nikto**: Performs comprehensive tests against web servers, checking for potentially dangerous files, outdated versions, and version-specific problems.
 - **View the Results**: The results from both scans will be displayed and saved for inclusion in the PDF report.
 
+
 **Network Tests**:
 
 - **Access the Network Page**: From the main menu, navigate to the "Network" page.
@@ -129,11 +131,13 @@ All the gathered data is compiled into a professional PDF report, complete with 
     - **Malformed Packet**: Sends malformed packets to the target to test for vulnerabilities.
 - **View the Results**: The results from both tests will be displayed and saved for inclusion in the PDF report.
 
+
 **Mapping the Network**:
 
 - **Access the Map Page**: From the main menu, navigate to the "Map" page.
 - **Enter Target Information**: Input the target IP address or range.
 - **Generate Map**: Create a visual representation of the network structure. The map will help identify critical points and potential vulnerabilities.
+
 
 **Generating and Testing Passwords**:
 
@@ -141,12 +145,14 @@ All the gathered data is compiled into a professional PDF report, complete with 
     - **Generate Password**: Use the password generation feature to create secure passwords.
     - **Test Password Strength**: Enter a password to test its strength against common password lists. The tool will provide a strength score and recommendations.
 
+
 **SSH Brute Force**:
 
 - **Access the SSH Page**: From the main menu, navigate to the "SSH" page.
 - **Enter Target Information**: Input the target IP address and port.
 - **Enter Credentials Lists**: Provide the username and password lists to be used for the brute force attack.
 - **Run the Attack**: Execute the brute force attack. The results will be displayed and saved for inclusion in the PDF report.
+
 
 **Generating the PDF Report**:
 
