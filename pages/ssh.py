@@ -5,9 +5,9 @@ import re
 import os
 import paramiko
 import threading
-import time
 import json
-
+from tkinter import Label
+from PIL import Image, ImageTk, ImageSequence
 
 class SSHPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -16,6 +16,8 @@ class SSHPage(ctk.CTkFrame):
         self.username_list_button = None
         self.password_list_button = None
         self.connect_button = None
+        self.loading_label = None
+        self.loading_frames = []
         self.setup_ui()
 
         self.is_request_pending = False
@@ -60,14 +62,49 @@ class SSHPage(ctk.CTkFrame):
         generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)
 
+        self.setup_loading_animation()
+
+    def setup_loading_animation(self):
+        self.loading_image = Image.open("asset/loading.gif")
+        self.loading_frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(self.loading_image)]
+        self.loading_label = Label(self.canvas, bg="#f0f0f0")
+        self.loading_label.pack_forget()  # Hide it initially
+
+    def start_loading_animation(self):
+        self.loading_label.pack(side="top", pady=10)
+        self.animate_loading(0)
+
+    def stop_loading_animation(self):
+        self.loading_label.pack_forget()
+
+    def animate_loading(self, frame_index):
+        if not self.is_request_pending:
+            return  # Stop animation if no request is pending
+        
+        frame_image = self.loading_frames[frame_index]
+        self.loading_label.config(image=frame_image)
+        self.loading_label.image = frame_image
+        next_frame_index = (frame_index + 1) % len(self.loading_frames)
+        self.loading_label.after(100, self.animate_loading, next_frame_index)
+
     def run_scans(self):
         ip = self.entry.get()
         try:
             ipaddress.ip_address(ip)
-            self.ports_and_services = self.scan_with_nmap(ip)
-            self.handle_services()
+            self.is_request_pending = True
+            self.start_loading_animation()
+            threading.Thread(target=self.perform_scans, args=(ip,)).start()
         except ValueError:
             self.show_error_message("Incorrect/unreachable IP!", self.canvas)
+            self.stop_loading_animation()
+
+    def perform_scans(self, ip):
+        try:
+            self.ports_and_services = self.scan_with_nmap(ip)
+            self.after(0, self.handle_services)
+        finally:
+            self.is_request_pending = False
+            self.after(0, self.stop_loading_animation)
 
     def scan_with_nmap(self, ip):
         command = ["nmap", "-sV", ip]
@@ -114,10 +151,12 @@ class SSHPage(ctk.CTkFrame):
                 print("request blocked in initiate connection")
                 return
             self.is_request_pending = True
+            self.start_loading_animation()
             print("Initiating SSH connection...")
             threading.Thread(target=self.test_ssh_connection, args=(self.entry.get(), self.ssh_port)).start()
         else:
             self.show_error_message("Please ensure both lists are selected and SSH service is found.", self.canvas)
+            self.stop_loading_animation()
 
     def select_list(self, list_type):
         folder = f"wordlist/{list_type}/"
@@ -127,7 +166,7 @@ class SSHPage(ctk.CTkFrame):
         popup = ctk.CTkToplevel(self)
         popup.geometry("400x300")
         popup.title(title)
-
+        
         # Make the popup stay on top
         popup.transient(self)
         popup.grab_set()
@@ -152,45 +191,48 @@ class SSHPage(ctk.CTkFrame):
         popup.destroy()
 
     def test_ssh_connection(self, ip, port):
-        print(f"Attempting to connect to SSH on {ip}:{port}")
-        if not (self.selected_username_list and self.selected_password_list):
-            print("Username or password list not selected.")
-            return
+        try:
+            print(f"Attempting to connect to SSH on {ip}:{port}")
+            if not (self.selected_username_list and self.selected_password_list):
+                print("Username or password list not selected.")
+                self.is_request_pending = False
+                self.after(0, self.stop_loading_animation)
+                return
 
-        username_path = os.path.join("wordlist/username/", self.selected_username_list)
-        password_path = os.path.join("wordlist/password/", self.selected_password_list)
+            username_path = os.path.join("wordlist/username/", self.selected_username_list)
+            password_path = os.path.join("wordlist/password/", self.selected_password_list)
 
-        with open(username_path, 'r') as file:
-            usernames = file.read().splitlines()
+            with open(username_path, 'r') as file:
+                usernames = file.read().splitlines()
 
-        with open(password_path, 'r') as file:
-            passwords = file.read().splitlines()
+            with open(password_path, 'r') as file:
+                passwords = file.read().splitlines()
 
-        threads = []
-        semaphore = threading.Semaphore(5)
+            threads = []
+            semaphore = threading.Semaphore(5)
 
-        for username in usernames:
-            for password in passwords:
-                if self.success_flag.is_set():
-                    break
-                thread = threading.Thread(target=self.try_login, args=(ip, port, username, password, semaphore))
-                threads.append(thread)
-                thread.start()
+            for username in usernames:
+                for password in passwords:
+                    if self.success_flag.is_set():
+                        break
+                    thread = threading.Thread(target=self.try_login, args=(ip, port, username, password, semaphore))
+                    threads.append(thread)
+                    thread.start()
 
-        for thread in threads:
-            thread.join()
+            for thread in threads:
+                thread.join()
 
-
-        if self.success_flag.is_set():
-            result_details = f"SSH connection successful with {self.successful_credentials}"
-            print("Successful authentication detected, stopping all other attempts.")
-        else:
-            result_details = "No successful SSH connection found."
-            print(result_details)
-        self.update_json(ip, result_details)
-
-        self.is_request_pending = False
-        self.success_flag.clear()
+            if self.success_flag.is_set():
+                result_details = f"SSH connection successful with {self.successful_credentials}"
+                print("Successful authentication detected, stopping all other attempts.")
+            else:
+                result_details = "No successful SSH connection found."
+                print(result_details)
+            self.update_json(ip, result_details)
+        finally:
+            self.is_request_pending = False
+            self.after(0, self.stop_loading_animation)
+            self.success_flag.clear()
 
     def try_login(self, ip, port, username, password, semaphore):
         if self.success_flag.is_set():
@@ -214,8 +256,6 @@ class SSHPage(ctk.CTkFrame):
                 print(f"SSH Error on port {port}: {e}")
             finally:
                 local_client.close()
-
-
 
     def update_json(self, ip, result_details):
         json_path = os.path.join(os.getcwd(), 'result.json')
@@ -244,4 +284,5 @@ class SSHPage(ctk.CTkFrame):
         self.is_request_pending = False
 
     def quit_app(self):
+        self.is_request_pending = False
         self.controller.quit()

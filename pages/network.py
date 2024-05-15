@@ -1,10 +1,13 @@
 import customtkinter as ctk
-from scapy.all import sr1, IP, TCP, send
+from scapy.all import sr1, IP, TCP
 import ipaddress
 import subprocess
 import re
 import json
 import os
+import threading
+from tkinter import Label
+from PIL import Image, ImageTk, ImageSequence
 
 class NetworkPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -12,6 +15,8 @@ class NetworkPage(ctk.CTkFrame):
         self.controller = controller
         self.is_request_pending = False
         self.ports_and_services = {}
+        self.loading_label = None
+        self.loading_frames = []
         self.setup_ui()
 
     def setup_ui(self):
@@ -49,20 +54,52 @@ class NetworkPage(ctk.CTkFrame):
         generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)
 
+        self.setup_loading_animation()
+
+    def setup_loading_animation(self):
+        self.loading_image = Image.open("asset/loading.gif")
+        self.loading_frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(self.loading_image)]
+        self.loading_label = Label(self.canvas, bg="#f0f0f0")
+        self.loading_label.pack_forget()  # Hide it initially
+
+    def start_loading_animation(self):
+        self.loading_label.pack(side="top", pady=10)
+        self.animate_loading(0)
+
+    def stop_loading_animation(self):
+        self.loading_label.pack_forget()
+
+    def animate_loading(self, frame_index):
+        if not self.is_request_pending:
+            return  # Stop animation if no request is pending
+        
+        frame_image = self.loading_frames[frame_index]
+        self.loading_label.config(image=frame_image)
+        self.loading_label.image = frame_image
+        next_frame_index = (frame_index + 1) % len(self.loading_frames)
+        self.loading_label.after(100, self.animate_loading, next_frame_index)
+
     def run_scans(self):
         if self.is_request_pending:
             return
         ip = self.entry.get()
         try:
             ipaddress.ip_address(ip)
+            self.is_request_pending = True
+            self.start_loading_animation()
+            threading.Thread(target=self.perform_scans, args=(ip,)).start()
+        except ValueError:
+            self.show_error_message("Incorrect/unreachable IP!", self.canvas)
+            self.stop_loading_animation()
+
+    def perform_scans(self, ip):
+        try:
             self.scan_with_nmap(ip)
             self.syn_flood_test(ip)
             self.malformed_packet_test(ip)
-        except ValueError:
-            self.show_error_message("Incorrect/unreachable IP!", self.canvas)
-            return
-        self.is_request_pending = True
-        self.after(3000, self.reset_request_state)
+        finally:
+            self.is_request_pending = False
+            self.after(0, self.stop_loading_animation)
 
     def scan_with_nmap(self, ip):
         command = ["nmap", "-sV", ip]
@@ -124,7 +161,6 @@ class NetworkPage(ctk.CTkFrame):
             with open(json_path, 'w') as file:
                 json.dump({ip: initial_data}, file, indent=4)
 
-
     def show_error_message(self, message, canvas):
         label_error = ctk.CTkLabel(canvas, text=message, text_color="Red", font=(None, 11))
         label_error.pack(side="top", pady=10, anchor="n")
@@ -134,4 +170,5 @@ class NetworkPage(ctk.CTkFrame):
         self.is_request_pending = False
 
     def quit_app(self):
+        self.is_request_pending = False
         self.controller.quit()

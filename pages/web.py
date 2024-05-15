@@ -6,13 +6,17 @@ import re
 import json
 import os
 import time
+import threading
+from tkinter import Label
+from PIL import Image, ImageTk, ImageSequence
 
 class WebPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
         self.is_request_pending = False
-        
+        self.loading_label = None
+        self.loading_frames = []
         self.setup_ui()
 
     def setup_ui(self):
@@ -48,7 +52,32 @@ class WebPage(ctk.CTkFrame):
 
         generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)
-       
+
+        self.setup_loading_animation()
+
+    def setup_loading_animation(self):
+        self.loading_image = Image.open("asset/loading.gif")
+        self.loading_frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(self.loading_image)]
+        self.loading_label = Label(self.canvas, bg="#f0f0f0")
+        self.loading_label.pack_forget()  # Hide it initially
+
+    def start_loading_animation(self):
+        self.loading_label.pack(side="top", pady=10)
+        self.animate_loading(0)
+
+    def stop_loading_animation(self):
+        self.loading_label.pack_forget()
+
+    def animate_loading(self, frame_index):
+        if not self.is_request_pending:
+            return  # Stop animation if no request is pending
+        
+        frame_image = self.loading_frames[frame_index]
+        self.loading_label.config(image=frame_image)
+        self.loading_label.image = frame_image
+        next_frame_index = (frame_index + 1) % len(self.loading_frames)
+        self.loading_label.after(100, self.animate_loading, next_frame_index)
+
     def run_scans(self):
         if self.is_request_pending:
             return
@@ -56,14 +85,20 @@ class WebPage(ctk.CTkFrame):
 
         try:
             ipaddress.ip_address(ip)
-            self.ports_and_services = self.scan_with_nmap(ip)
-            self.handle_services(ip)
+            self.is_request_pending = True
+            self.start_loading_animation()
+            threading.Thread(target=self.perform_scans, args=(ip,)).start()
         except ValueError:
             self.show_error_message("Incorrect/unreachable IP!", self.canvas)
-            return
+            self.stop_loading_animation()
 
-        self.is_request_pending = True
-        self.after(3000, self.reset_request_state)
+    def perform_scans(self, ip):
+        try:
+            ports_and_services = self.scan_with_nmap(ip)
+            self.handle_services(ip, ports_and_services)
+        finally:
+            self.is_request_pending = False
+            self.stop_loading_animation()
 
     def scan_with_nmap(self, ip):
         command = ["nmap", ip]
@@ -78,22 +113,30 @@ class WebPage(ctk.CTkFrame):
                 service = match.group(2).strip()
                 ports_services[port] = service
         return ports_services
-        
-    def handle_services(self, ip):
+
+    def handle_services(self, ip, ports_and_services):
         web_ports = {}
         http_services = {'http', 'apache', 'nginx', 'http-alt', 'http-proxy', 'https', 'apache2', 'apache-ssl'}
-        for port, service in self.ports_and_services.items():
+        for port, service in ports_and_services.items():
             if any(http_service in service.lower() for http_service in http_services):
                 web_ports[port] = service
         if web_ports:
+            threads = []
             for port, service in web_ports.items():
-                sqlmap_output = self.test_sql_injection(ip, port)
-                nikto_output = self.run_nikto_scan(ip, port)
-                self.collect_and_update_results(ip, port, service, sqlmap_output, nikto_output)
+                thread = threading.Thread(target=self.run_web_scans, args=(ip, port, service))
+                threads.append(thread)
+                thread.start()
+            
+            for thread in threads:
+                thread.join()
         else:
             print("No web server found!")
             self.show_error_message("No web server found on this target!", self.canvas)
 
+    def run_web_scans(self, ip, port, service):
+        sqlmap_output = self.test_sql_injection(ip, port)
+        nikto_output = self.run_nikto_scan(ip, port)
+        self.collect_and_update_results(ip, port, service, sqlmap_output, nikto_output)
 
     def parse_nikto_output(self, output):
         lines = output.split('\n')
@@ -175,4 +218,5 @@ class WebPage(ctk.CTkFrame):
         self.is_request_pending = False
 
     def quit_app(self):
+        self.is_request_pending = False
         self.controller.quit()
