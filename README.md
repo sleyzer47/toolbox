@@ -2,10 +2,14 @@
 
 ## Introduction
 
-Welcome to the Pentest Toolbox Report Generator, a project developed as part of my Master's program in Cybersecurity. 
-This tool is designed to automate the generation of professional penetration testing reports. 
+Welcome to the Pentest Toolbox Report Generator, a project developed as part of my Master's program in Cybersecurity.
+
+This tool is designed to automate the generation of professional penetration testing reports.
+
 It consolidates various scan results into a well-structured PDF report, making it easier for security professionals to review and address vulnerabilities.
-**The application runs under Windows**, for easier access. The application can be used without any knowledge of cybersecurity. 
+
+**The application runs under Windows**, for easier access. The application can be used without any knowledge of cybersecurity.
+
 However, interpretation of the results may be complicated without such knowledge.
 
 ## Features
