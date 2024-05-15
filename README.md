@@ -62,8 +62,7 @@ All the gathered data is compiled into a professional PDF report, complete with 
 1. **Clone the repository**:
     ```sh
     git clone https://github.com/sleyzer47/toolbox.git
-    
-    ```sh
+
     cd toolbox/
 
 2. **Install the required packages**:
@@ -104,46 +103,53 @@ All the gathered data is compiled into a professional PDF report, complete with 
 2. **Navigate the Menu**: Upon starting the application, you will be presented with a menu. 
     This menu allows you to navigate to different functionalities of the toolbox. 
 
-### How do the features work?
+## How do the features work?
 
 **Nmap Scan**:
+
     - **Access the Nmap Page**: From the main menu, navigate to the "Nmap" page.
     - **Enter Target Information**: Input the target IP address or range that you want to scan.
     - **Run the Scan**: Start the Nmap scan. The results will be displayed and saved for inclusion in the PDF report.
 
 **Web Scan**:
-    - **Access the Web Scan Page**: From the main menu, navigate to the "Web" page.
-    - **Enter Target Information**: Input the target URL or IP address.
-    - **Run the Scans**: Both SQLMap and Nikto scans will be executed.
-        - **SQLMap**: Used to detect and exploit SQL injection vulnerabilities.
-        - **Nikto**: Performs comprehensive tests against web servers, checking for potentially dangerous files, outdated versions, and version-specific problems.
-    - **View the Results**: The results from both scans will be displayed and saved for inclusion in the PDF report.
+
+- **Access the Web Scan Page**: From the main menu, navigate to the "Web" page.
+- **Enter Target Information**: Input the target URL or IP address.
+- **Run the Scans**: Both SQLMap and Nikto scans will be executed.
+    - **SQLMap**: Used to detect and exploit SQL injection vulnerabilities.
+    - **Nikto**: Performs comprehensive tests against web servers, checking for potentially dangerous files, outdated versions, and version-specific problems.
+- **View the Results**: The results from both scans will be displayed and saved for inclusion in the PDF report.
 
 **Network Tests**:
-    - **Access the Network Page**: From the main menu, navigate to the "Network" page.
-    - **Enter Target Information**: Input the target IP address or range.
-    - **Run the Tests**: Both SYN Flood and Malformed Packet tests will be executed.
-        - **SYN Flood**: Tests the target's resilience against SYN flood attacks.
-        - **Malformed Packet**: Sends malformed packets to the target to test for vulnerabilities.
-    - **View the Results**: The results from both tests will be displayed and saved for inclusion in the PDF report.
+
+- **Access the Network Page**: From the main menu, navigate to the "Network" page.
+- **Enter Target Information**: Input the target IP address or range.
+- **Run the Tests**: Both SYN Flood and Malformed Packet tests will be executed.
+    - **SYN Flood**: Tests the target's resilience against SYN flood attacks.
+    - **Malformed Packet**: Sends malformed packets to the target to test for vulnerabilities.
+- **View the Results**: The results from both tests will be displayed and saved for inclusion in the PDF report.
 
 **Mapping the Network**:
-    - **Access the Map Page**: From the main menu, navigate to the "Map" page.
-    - **Enter Target Information**: Input the target IP address or range.
-    - **Generate Map**: Create a visual representation of the network structure. The map will help identify critical points and potential vulnerabilities.
+
+- **Access the Map Page**: From the main menu, navigate to the "Map" page.
+- **Enter Target Information**: Input the target IP address or range.
+- **Generate Map**: Create a visual representation of the network structure. The map will help identify critical points and potential vulnerabilities.
 
 **Generating and Testing Passwords**:
-    - **Access the Password Page**: From the main menu, navigate to the "Password" page.
-        - **Generate Password**: Use the password generation feature to create secure passwords.
-        - **Test Password Strength**: Enter a password to test its strength against common password lists. The tool will provide a strength score and recommendations.
+
+- **Access the Password Page**: From the main menu, navigate to the "Password" page.
+    - **Generate Password**: Use the password generation feature to create secure passwords.
+    - **Test Password Strength**: Enter a password to test its strength against common password lists. The tool will provide a strength score and recommendations.
 
 **SSH Brute Force**:
-    - **Access the SSH Page**: From the main menu, navigate to the "SSH" page.
-    - **Enter Target Information**: Input the target IP address and port.
-    - **Enter Credentials Lists**: Provide the username and password lists to be used for the brute force attack.
-    - **Run the Attack**: Execute the brute force attack. The results will be displayed and saved for inclusion in the PDF report.
+
+- **Access the SSH Page**: From the main menu, navigate to the "SSH" page.
+- **Enter Target Information**: Input the target IP address and port.
+- **Enter Credentials Lists**: Provide the username and password lists to be used for the brute force attack.
+- **Run the Attack**: Execute the brute force attack. The results will be displayed and saved for inclusion in the PDF report.
 
 **Generating the PDF Report**:
-    - **Access the PDF Page**: From the main menu, navigate to the "PDF" page.
-    - **Generate Report**: Click the button to generate the PDF report. The report will compile all the collected data into a structured document with a cover page, executive summary, and detailed results.
+
+- **Access the PDF Page**: From the main menu, navigate to the "PDF" page.
+- **Generate Report**: Click the button to generate the PDF report. The report will compile all the collected data into a structured document with a cover page, executive summary, and detailed results.
 
