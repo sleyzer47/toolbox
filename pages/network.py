@@ -23,10 +23,12 @@ class NetworkPage(ctk.CTkFrame):
         self.canvas = ctk.CTkCanvas(self, highlightthickness=0)
         self.canvas.pack(side="left", fill="both", expand=True)
         
+        # Create a frame for the buttons
         button_frame = ctk.CTkFrame(self.canvas)
         self.canvas.create_window((0, 0), window=button_frame, anchor="nw")
         button_frame.pack(fill="y", side="left")
 
+        # Define navigation buttons
         buttons = [
             ("Menu", lambda: self.controller.show_frame("MenuPage")),
             ("Network", lambda: self.controller.show_frame("NetworkPage")),
@@ -38,13 +40,16 @@ class NetworkPage(ctk.CTkFrame):
             ("PDF", lambda: self.controller.show_frame("PDFPage"))
         ]
 
+        # Add navigation buttons to the button frame
         for text, command in buttons:
             btn = ctk.CTkButton(button_frame, text=text, command=command)
             btn.pack(fill="x", padx=10, pady=5)
 
+        # Add a quit button
         quit_button = ctk.CTkButton(button_frame, text="Quitter", command=self.quit_app, fg_color="#d05e5e")
         quit_button.pack(fill="x", padx=10, pady=5)
 
+        # Add labels and entry widget
         ctk.CTkLabel(self.canvas, text="Network Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
         ctk.CTkLabel(self.canvas, text="This feature is aimed at gateways, firewalls, etc.", text_color="Black", font=(None, 14)).pack(side="top", pady=5, anchor="n")
         ctk.CTkLabel(self.canvas, text="Enter the good target IP", text_color="Black", font=(None, 14)).pack(side="top", pady=5, anchor="n")
@@ -52,25 +57,31 @@ class NetworkPage(ctk.CTkFrame):
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)
 
+        # Add a button to generate the report
         generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)
 
+        # Set up loading animation
         self.setup_loading_animation()
 
     def setup_loading_animation(self):
+        # Load the loading animation GIF
         self.loading_image = Image.open("asset/loading.gif")
         self.loading_frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(self.loading_image)]
         self.loading_label = Label(self.canvas, bg="#f0f0f0")
         self.loading_label.pack_forget()  # Hide it initially
 
     def start_loading_animation(self):
+        # Show and start the loading animation
         self.loading_label.pack(side="top", pady=10)
         self.animate_loading(0)
 
     def stop_loading_animation(self):
+        # Stop and hide the loading animation
         self.loading_label.pack_forget()
 
     def animate_loading(self, frame_index):
+        # Animate the loading GIF
         if not self.is_request_pending:
             return  # Stop animation if no request is pending
         
@@ -81,6 +92,7 @@ class NetworkPage(ctk.CTkFrame):
         self.loading_label.after(100, self.animate_loading, next_frame_index)
 
     def run_scans(self):
+        # Start the scanning process
         if self.is_request_pending:
             return
         ip = self.entry.get()
@@ -94,6 +106,7 @@ class NetworkPage(ctk.CTkFrame):
             self.stop_loading_animation()
 
     def perform_scans(self, ip):
+        # Perform all scans
         try:
             self.scan_with_nmap(ip)
             self.syn_flood_test(ip)
@@ -103,6 +116,7 @@ class NetworkPage(ctk.CTkFrame):
             self.after(0, self.stop_loading_animation)
 
     def scan_with_nmap(self, ip):
+        # Run an Nmap scan and store the results
         command = ["nmap", "-sV", ip]
         result = subprocess.run(command, capture_output=True, text=True)
         lines = result.stdout.split("\n")
@@ -115,10 +129,12 @@ class NetworkPage(ctk.CTkFrame):
                     self.ports_and_services[port] = service
 
     def syn_flood_test(self, ip):
+        # Perform SYN flood test and update the JSON file
         syn_flood_results = [port for port in self.ports_and_services.keys()]
         self.update_json(ip, syn_flood_results=syn_flood_results)
 
     def malformed_packet_test(self, ip):
+        # Perform malformed packet test and update the JSON file
         malformed_packet_results = {}
         flags_to_test = ['FPU', 'U', 'R', 'P']
         for port in self.ports_and_services.keys():
@@ -132,6 +148,7 @@ class NetworkPage(ctk.CTkFrame):
         self.update_json(ip, malformed_packet_results=malformed_packet_results)
 
     def update_json(self, ip, syn_flood_results=None, malformed_packet_results=None):
+        # Update the JSON file with the results
         json_path = os.path.join(os.getcwd(), 'result.json')
         if os.path.exists(json_path):
             with open(json_path, 'r+') as file:
@@ -163,13 +180,16 @@ class NetworkPage(ctk.CTkFrame):
                 json.dump({ip: initial_data}, file, indent=4)
 
     def show_error_message(self, message, canvas):
+        # Show an error message on the canvas
         label_error = ctk.CTkLabel(canvas, text=message, text_color="Red", font=(None, 11))
         label_error.pack(side="top", pady=10, anchor="n")
         self.after(3000, lambda: label_error.destroy())
 
     def reset_request_state(self):
+        # Reset the request state
         self.is_request_pending = False
 
     def quit_app(self):
+        # Quit the application
         self.is_request_pending = False
         self.controller.quit()

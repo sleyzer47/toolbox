@@ -7,14 +7,17 @@ class MenuPage(ctk.CTkFrame):
         self.controller = controller
         self.setup_ui()
 
+    # Set up the main canvas
     def setup_ui(self):
         self.canvas = ctk.CTkCanvas(self, highlightthickness=0)
         self.canvas.pack(side="left", fill="both", expand=True)
         
+        # Create a frame for the buttons
         button_frame = ctk.CTkFrame(self.canvas)
         self.canvas.create_window((0, 0), window=button_frame, anchor="nw")
         button_frame.pack(fill="y", side="left")
 
+        # Define navigation buttons
         buttons = [
             ("Menu", lambda: self.controller.show_frame("MenuPage")),
             ("Network", lambda: self.controller.show_frame("NetworkPage")),
@@ -26,10 +29,12 @@ class MenuPage(ctk.CTkFrame):
             ("PDF", lambda: self.controller.show_frame("PDFPage"))
         ]
 
+        # Add navigation buttons to the button frame
         for text, command in buttons:
             btn = ctk.CTkButton(button_frame, text=text, command=command)
             btn.pack(fill="x", padx=10, pady=5)
-
+        
+        # Add a quit button
         quit_button = ctk.CTkButton(button_frame, text="Quitter", command=self.quit_app, fg_color="#d05e5e")
         quit_button.pack(fill="x", padx=10, pady=5)
 
@@ -46,9 +51,11 @@ class MenuPage(ctk.CTkFrame):
 
         self.insert_text(text_widget)
 
-        text_widget.config(state="disabled")  # Make the text read-only
+        # Make the text read-only
+        text_widget.config(state="disabled")
 
     def insert_text(self, text_widget):
+        # Load introduction text from file
         intro_text = self.load_intro_text("asset/menu.txt")
 
         # Define tags for styling

@@ -28,13 +28,16 @@ class SSHPage(ctk.CTkFrame):
         self.threads = []
 
     def setup_ui(self):
+        # Set up the main canvas
         self.canvas = ctk.CTkCanvas(self, highlightthickness=0)
         self.canvas.pack(side="left", fill="both", expand=True)
         
+        # Create a frame for the buttons
         button_frame = ctk.CTkFrame(self.canvas)
         self.canvas.create_window((0, 0), window=button_frame, anchor="nw")
         button_frame.pack(fill="y", side="left")
 
+        # Define navigation buttons
         buttons = [
             ("Menu", lambda: self.controller.show_frame("MenuPage")),
             ("Network", lambda: self.controller.show_frame("NetworkPage")),
@@ -46,38 +49,47 @@ class SSHPage(ctk.CTkFrame):
             ("PDF", lambda: self.controller.show_frame("PDFPage"))
         ]
 
+        # Add navigation buttons to the button frame
         for text, command in buttons:
             btn = ctk.CTkButton(button_frame, text=text, command=command)
             btn.pack(fill="x", padx=10, pady=5)
 
+        # Add a quit button
         quit_button = ctk.CTkButton(button_frame, text="Quitter", command=self.quit_app, fg_color="#d05e5e")
         quit_button.pack(fill="x", padx=10, pady=5)
 
+        # Add a title label and information label
         ctk.CTkLabel(self.canvas, text="SSH Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
         ctk.CTkLabel(self.canvas, text="Information: personal wordlists can be added to the wordlist folder", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
         
+        # Entry field for target IP
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)
 
+        # Button to generate report
         generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)
 
         self.setup_loading_animation()
 
     def setup_loading_animation(self):
+        # Set up the loading animation
         self.loading_image = Image.open("asset/loading.gif")
         self.loading_frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(self.loading_image)]
         self.loading_label = Label(self.canvas, bg="#f0f0f0")
         self.loading_label.pack_forget()  # Hide it initially
 
     def start_loading_animation(self):
+        # Start the loading animation
         self.loading_label.pack(side="top", pady=10)
         self.animate_loading(0)
 
     def stop_loading_animation(self):
+        # Stop the loading animation
         self.loading_label.pack_forget()
 
     def animate_loading(self, frame_index):
+        # Animate the loading gif
         if not self.is_request_pending:
             return  # Stop animation if no request is pending
         
@@ -88,6 +100,7 @@ class SSHPage(ctk.CTkFrame):
         self.loading_label.after(100, self.animate_loading, next_frame_index)
 
     def run_scans(self):
+        # Run scans when the button is clicked
         ip = self.entry.get()
         try:
             ipaddress.ip_address(ip)
@@ -99,6 +112,7 @@ class SSHPage(ctk.CTkFrame):
             self.stop_loading_animation()
 
     def perform_scans(self, ip):
+        # Perform the actual scans
         try:
             self.ports_and_services = self.scan_with_nmap(ip)
             self.after(0, self.handle_services)
@@ -107,6 +121,7 @@ class SSHPage(ctk.CTkFrame):
             self.after(0, self.stop_loading_animation)
 
     def scan_with_nmap(self, ip):
+        # Scan the target IP with nmap
         command = ["nmap", "-sV", ip]
         result = subprocess.run(command, capture_output=True, text=True)
         output = result.stdout
@@ -121,6 +136,7 @@ class SSHPage(ctk.CTkFrame):
         return ports_services
 
     def handle_services(self):
+        # Handle the services found in the scan
         ssh_found = False
         for port, service in self.ports_and_services.items():
             if "ssh" in service.lower():
@@ -133,6 +149,7 @@ class SSHPage(ctk.CTkFrame):
             self.show_error_message("No SSH service found on this target!", self.canvas)
 
     def show_ssh_buttons(self):
+        # Show buttons for SSH-related actions
         if not self.username_list_button:
             self.username_list_button = ctk.CTkButton(self.canvas, text="Select Username List", command=lambda: self.select_list("username"))
             self.username_list_button.pack(padx=10, pady=5)
@@ -146,6 +163,7 @@ class SSHPage(ctk.CTkFrame):
             self.connect_button.pack(padx=10, pady=5)
 
     def initiate_connection(self):
+        # Initiate the SSH connection test
         if self.selected_username_list and self.selected_password_list and self.ssh_port:
             if self.is_request_pending:
                 print("request blocked in initiate connection")
@@ -159,10 +177,12 @@ class SSHPage(ctk.CTkFrame):
             self.stop_loading_animation()
 
     def select_list(self, list_type):
+        # Select a list of usernames or passwords
         folder = f"wordlist/{list_type}/"
         self.show_selection_window(folder, f"Select {list_type.capitalize()} List")
 
     def show_selection_window(self, path, title):
+        # Show a popup window to select a list
         popup = ctk.CTkToplevel(self)
         popup.geometry("400x300")
         popup.title(title)
@@ -183,6 +203,7 @@ class SSHPage(ctk.CTkFrame):
         confirm_button.pack(pady=20)
 
     def set_list_choice(self, choice, path, popup):
+        # Set the selected list choice
         if "username" in path:
             self.selected_username_list = choice
         elif "password" in path:
@@ -191,6 +212,7 @@ class SSHPage(ctk.CTkFrame):
         popup.destroy()
 
     def test_ssh_connection(self, ip, port):
+        # Test the SSH connection with the selected lists
         try:
             print(f"Attempting to connect to SSH on {ip}:{port}")
             if not (self.selected_username_list and self.selected_password_list):
@@ -235,6 +257,7 @@ class SSHPage(ctk.CTkFrame):
             self.success_flag.clear()
 
     def try_login(self, ip, port, username, password, semaphore):
+        # Try to login with given username and password
         if self.success_flag.is_set():
             return
 
@@ -258,6 +281,7 @@ class SSHPage(ctk.CTkFrame):
                 local_client.close()
 
     def update_json(self, ip, result_details):
+        # Update the result.json file with SSH brute force results
         json_path = os.path.join(os.getcwd(), 'result.json')
         data = {}
         if os.path.exists(json_path):
@@ -276,13 +300,16 @@ class SSHPage(ctk.CTkFrame):
             json.dump(data, file, indent=4)
 
     def show_error_message(self, message, canvas):
+        # Show an error message on the canvas
         label_error = ctk.CTkLabel(canvas, text=message, text_color="Red", font=(None, 11))
         label_error.pack(side="top", pady=10, anchor="n")
         self.after(3000, lambda: label_error.destroy())
 
     def reset_request_state(self):
+        # Reset the request state
         self.is_request_pending = False
 
     def quit_app(self):
+        # Quit the application
         self.is_request_pending = False
         self.controller.quit()

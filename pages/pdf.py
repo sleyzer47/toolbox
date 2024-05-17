@@ -20,13 +20,16 @@ class PDFPage(ctk.CTkFrame):
         self.setup_ui()
 
     def setup_ui(self):
+        # Set up the main canvas
         self.canvas = ctk.CTkCanvas(self, highlightthickness=0)
         self.canvas.pack(side="left", fill="both", expand=True)
         
+        # Create a frame for the buttons
         button_frame = ctk.CTkFrame(self.canvas)
         self.canvas.create_window((0, 0), window=button_frame, anchor="nw")
         button_frame.pack(fill="y", side="left")
 
+        # Define navigation buttons
         buttons = [
             ("Menu", lambda: self.controller.show_frame("MenuPage")),
             ("Network", lambda: self.controller.show_frame("NetworkPage")),
@@ -38,13 +41,16 @@ class PDFPage(ctk.CTkFrame):
             ("PDF", lambda: self.controller.show_frame("PDFPage"))
         ]
 
+        # Add navigation buttons to the button frame
         for text, command in buttons:
             btn = ctk.CTkButton(button_frame, text=text, command=command)
             btn.pack(fill="x", padx=10, pady=5)
 
+        # Add a quit button
         quit_button = ctk.CTkButton(button_frame, text="Quitter", command=self.quit_app, fg_color="#d05e5e")
         quit_button.pack(fill="x", padx=10, pady=5)
 
+        # Add a title label
         ctk.CTkLabel(self.canvas, text="PDF Generation Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
         generate_button = ctk.CTkButton(self.canvas, text="Generate Report", command=self.generate_pdf)
         generate_button.pack(fill="x", padx=150, pady=5)
@@ -52,19 +58,23 @@ class PDFPage(ctk.CTkFrame):
         self.setup_loading_animation()
 
     def setup_loading_animation(self):
+        # Set up the loading animation
         self.loading_image = Image.open("asset/loading.gif")
         self.loading_frames = [ImageTk.PhotoImage(frame.copy()) for frame in ImageSequence.Iterator(self.loading_image)]
         self.loading_label = Label(self.canvas, bg="#f0f0f0")
         self.loading_label.pack_forget()  # Hide it initially
 
     def start_loading_animation(self):
+        # Start the loading animation
         self.loading_label.pack(side="top", pady=10)
         self.animate_loading(0)
 
     def stop_loading_animation(self):
+        # Stop the loading animation
         self.loading_label.pack_forget()
 
     def animate_loading(self, frame_index):
+        # Animate the loading gif
         if not self.is_request_pending:
             return  # Stop animation if no request is pending
         
@@ -75,6 +85,7 @@ class PDFPage(ctk.CTkFrame):
         self.loading_label.after(100, self.animate_loading, next_frame_index)
 
     def generate_pdf(self):
+        # Generate the PDF report
         json_path = os.path.join(os.getcwd(), 'result.json')
         
         # Check if JSON file is empty
@@ -89,6 +100,7 @@ class PDFPage(ctk.CTkFrame):
         threading.Thread(target=self.perform_pdf_generation, args=(json_path,)).start()
 
     def perform_pdf_generation(self, json_path):
+        # Perform the actual PDF generation
         try:
             pdf_path = os.path.join(os.getcwd(), 'report.pdf')
             doc = SimpleDocTemplate(pdf_path, pagesize=letter)
@@ -298,13 +310,16 @@ class PDFPage(ctk.CTkFrame):
             self.stop_loading_animation()
 
     def show_error_message(self, message, canvas):
+        # Show an error message on the canvas
         label_error = ctk.CTkLabel(canvas, text=message, text_color="Red", font=(None, 11))
         label_error.pack(side="top", pady=10, anchor="n")
         self.after(3000, lambda: label_error.destroy())
 
     def reset_request_state(self):
+        # Reset the request state
         self.is_request_pending = False
 
     def quit_app(self):
+        # Quit the application
         self.is_request_pending = False
         self.controller.quit()
