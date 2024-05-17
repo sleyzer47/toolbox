@@ -54,7 +54,7 @@ class SSHPage(ctk.CTkFrame):
         quit_button.pack(fill="x", padx=10, pady=5)
 
         ctk.CTkLabel(self.canvas, text="SSH Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
-        ctk.CTkLabel(self.canvas, text="Welcome in SSH page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="Information: personal wordlists can be added to the wordlist folder", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
         
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)

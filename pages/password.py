@@ -38,7 +38,6 @@ class PasswordPage(ctk.CTkFrame):
         quit_button.pack(fill="x", padx=10, pady=5)
 
         ctk.CTkLabel(self.canvas, text="Password Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
-        ctk.CTkLabel(self.canvas, text="Welcome in password page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
 
         self.generate_password_button = ctk.CTkButton(self.canvas, text="Generate Password", command=self.show_generate_password)
         self.generate_password_button.pack(pady=5)
@@ -51,7 +50,7 @@ class PasswordPage(ctk.CTkFrame):
     def clear_canvas(self):
         if self.current_canvas:
             self.current_canvas.destroy()
-        self.current_canvas = ctk.CTkCanvas(self.canvas)
+        self.current_canvas = ctk.CTkCanvas(self.canvas, highlightthickness=0)
         self.current_canvas.pack(fill="both", expand=True)
 
     def show_generate_password(self):
@@ -76,7 +75,7 @@ class PasswordPage(ctk.CTkFrame):
 
     def show_test_password(self):
         self.clear_canvas()
-        ctk.CTkLabel(self.current_canvas, text="Test Password", font=(None, 16)).pack(pady=10)
+        ctk.CTkLabel(self.current_canvas, text="Enter the password", font=(None, 16)).pack(pady=10)
         self.password_entry = ctk.CTkEntry(self.current_canvas, placeholder_text="Enter password to test")
         self.password_entry.pack(pady=10)
 

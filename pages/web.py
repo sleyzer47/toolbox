@@ -45,7 +45,7 @@ class WebPage(ctk.CTkFrame):
         quit_button.pack(fill="x", padx=10, pady=5)
 
         ctk.CTkLabel(self.canvas, text="Web Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
-        ctk.CTkLabel(self.canvas, text="Welcome in Web page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="WARNING ! Windows Defender can block the file nikto.pl, check if this is not the case", text_color="Red", font=(None, 14)).pack(side="top", pady=10, anchor="n")
         
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)

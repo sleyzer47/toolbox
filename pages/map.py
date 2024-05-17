@@ -45,13 +45,10 @@ class MapPage(ctk.CTkFrame):
         quit_button.pack(fill="x", padx=10, pady=5)
 
         ctk.CTkLabel(self.canvas, text="Map Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
-        ctk.CTkLabel(self.canvas, text="Welcome in Map page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="Enter the network IP range and subnet mask (ex:192.168.1.0/24)", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
         
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP range")
         self.entry.pack(padx=200, pady=5)
-
-        self.label = ctk.CTkLabel(self.canvas, text="Enter the network IP range and subnet mask(ex:192.168.1.0/24)")
-        self.label.pack(padx=20, pady=5)
         
         generate_button = ctk.CTkButton(self.canvas, text="Generate Map", command=self.run_scans)
         generate_button.pack(fill="x", padx=150, pady=5)

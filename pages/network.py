@@ -46,7 +46,8 @@ class NetworkPage(ctk.CTkFrame):
         quit_button.pack(fill="x", padx=10, pady=5)
 
         ctk.CTkLabel(self.canvas, text="Network Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
-        ctk.CTkLabel(self.canvas, text="Welcome in network page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="This feature is aimed at gateways, firewalls, etc.", text_color="Black", font=(None, 14)).pack(side="top", pady=5, anchor="n")
+        ctk.CTkLabel(self.canvas, text="Enter the good target IP", text_color="Black", font=(None, 14)).pack(side="top", pady=5, anchor="n")
 
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)

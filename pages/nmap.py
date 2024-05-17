@@ -44,7 +44,7 @@ class NmapPage(ctk.CTkFrame):
         quit_button.pack(fill="x", padx=10, pady=5)
 
         ctk.CTkLabel(self.canvas, text="Nmap Page", text_color="Black", font=(None, 20)).pack(side="top", pady=10, anchor="n")
-        ctk.CTkLabel(self.canvas, text="Welcome in nmap page!", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
+        ctk.CTkLabel(self.canvas, text="Enter the target IP", text_color="Black", font=(None, 14)).pack(side="top", pady=10, anchor="n")
 
         self.entry = ctk.CTkEntry(self.canvas, placeholder_text="Enter the target IP")
         self.entry.pack(padx=200, pady=5)

@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from PIL import Image
+import webbrowser
 
 class StartPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -20,11 +21,17 @@ class StartPage(ctk.CTkFrame):
         menu_button = ctk.CTkButton(self.canvas, text="Start", command=self.go_to_menu)
         menu_button.pack(pady=5)
 
+        readme_button = ctk.CTkButton(self.canvas, text="ReadME", command=self.open_readme)
+        readme_button.pack(pady=5)
+
         quit_button = ctk.CTkButton(self.canvas, text="Quit", command=self.quit_app)
         quit_button.pack(pady=5)
 
     def go_to_menu(self):
         self.controller.show_frame("MenuPage")
+
+    def open_readme(self):
+        webbrowser.open("https://github.com/sleyzer47/toolbox#pentest-toolbox")
 
     def quit_app(self):
         self.controller.quit()
